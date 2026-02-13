@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## Conference Room Booking App
 
 Full-stack conference room booking web application.
@@ -66,3 +67,7 @@ npm run dev
 
 > Note: Business logic (auth, booking workflow, DB queries) is intentionally **not implemented yet**. This repository currently contains only the scaffolding and folder structure.
 
+=======
+# Nex_conference
+Conference room booking application
+>>>>>>> a41a4713d870919dc18d1b6dee2f12fe0825de3e
