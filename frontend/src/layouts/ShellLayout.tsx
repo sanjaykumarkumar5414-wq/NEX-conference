@@ -14,35 +14,35 @@ export function ShellLayout({ children, showHeader = true }: ShellLayoutProps) {
     <div className="flex min-h-screen flex-col">
       {showHeader && (
         <header className="border-b border-slate-800 bg-slate-950/60 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-3">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               <img
                 src={logoImg}
                 alt="NEX Conference Room"
                 className="h-10 w-auto shrink-0"
               />
               <div>
-                <p className="text-sm font-semibold tracking-wide text-slate-100">
+                <p className="text-xs font-semibold tracking-wide text-slate-100 sm:text-sm">
                   NEX Conference Room
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-[11px] text-slate-400 sm:text-xs">
                   Booking Dashboard
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex w-full items-center justify-between gap-2 text-[11px] sm:w-auto sm:justify-end sm:gap-3 sm:text-xs">
               {user ? (
                 <>
-                  <span className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-slate-200">
+                  <span className="max-w-full flex-1 truncate rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-slate-200 sm:flex-initial">
                     <span className="font-medium">{user.email}</span>
-                    <span className="ml-2 text-slate-400">
+                    <span className="ml-2 hidden text-slate-400 sm:inline">
                       {user.role === "ADMIN" ? "HR Admin" : "Employee"}
                     </span>
                   </span>
                   <button
                     type="button"
                     onClick={logout}
-                    className="rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-slate-200 transition hover:border-slate-500 hover:bg-slate-700"
+                    className="shrink-0 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-[11px] text-slate-200 transition hover:border-slate-500 hover:bg-slate-700 sm:text-xs"
                   >
                     Sign out
                   </button>

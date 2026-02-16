@@ -52,7 +52,7 @@ export function EmployeeCalendar({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-baseline justify-between">
+      <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-baseline sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">
             Conference room calendar
@@ -82,15 +82,15 @@ export function EmployeeCalendar({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-xs">
-        <div className="grid grid-cols-7 gap-2 text-[11px] text-slate-400">
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3 text-xs sm:p-4">
+        <div className="grid grid-cols-7 gap-1.5 text-[10px] text-slate-400 sm:gap-2 sm:text-[11px]">
           {WEEKDAYS.map((day) => (
             <div key={day} className="text-center font-medium">
               {day}
             </div>
           ))}
         </div>
-        <div className="mt-3 grid grid-cols-7 gap-2 text-[11px]">
+        <div className="mt-3 grid grid-cols-7 gap-1.5 text-[10px] sm:gap-2 sm:text-[11px]">
           {leadingBlanks.map((i) => (
             <div key={`blank-${i}`} className="rounded-xl bg-slate-950/40 p-2" />
           ))}
@@ -103,13 +103,13 @@ export function EmployeeCalendar({
                 type="button"
                 onClick={() => onSelectDay(dateStr)}
                 disabled={false}
-                className={`group flex flex-col items-center gap-1 rounded-xl border px-2 py-2 transition ${
+                className={`group flex flex-col items-center gap-1 rounded-xl border px-1.5 py-1.5 transition sm:px-2 sm:py-2 ${
                   isPast
                     ? "cursor-default border-slate-800/50 bg-slate-900/40 opacity-80"
                     : "border-slate-800/70 bg-slate-900/60 hover:border-slate-600/80"
                 } ${isSelected ? "ring-2 ring-brand/60" : ""}`}
               >
-                <span className="text-[11px] text-slate-200">{day}</span>
+                <span className="text-[10px] text-slate-200 sm:text-[11px]">{day}</span>
                 <span
                   className={`h-1.5 w-6 rounded-full ${colorClass} ${!isPast ? "group-hover:scale-105" : ""}`}
                 />

@@ -124,7 +124,7 @@ export function EmployeeDashboardPage() {
 
   return (
     <>
-      <div className="flex w-full gap-8">
+      <div className="flex w-full flex-col gap-6 lg:flex-row lg:gap-8">
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <EmployeeCalendar
             year={calendarMonth.year}
@@ -137,8 +137,8 @@ export function EmployeeDashboardPage() {
           />
           <AvailabilityHeatmap bookings={bookings} />
         </div>
-        <div className="w-[360px] shrink-0 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="mt-4 w-full space-y-4 lg:mt-0 lg:w-[360px] lg:shrink-0">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-sm font-semibold text-slate-100">
                 Employee dashboard
@@ -151,7 +151,7 @@ export function EmployeeDashboardPage() {
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="inline-flex items-center justify-center rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white shadow-lg shadow-brand/40 hover:bg-brand-soft"
+              className="inline-flex w-full items-center justify-center rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white shadow-lg shadow-brand/40 hover:bg-brand-soft sm:w-auto"
             >
               Request booking
             </button>

@@ -132,7 +132,7 @@ export function AvailabilityHeatmap({ bookings }: AvailabilityHeatmapProps) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-300">
           <div className="flex flex-wrap items-center gap-3">
             <LegendPill color="bg-emerald-500/90" label="Free" />

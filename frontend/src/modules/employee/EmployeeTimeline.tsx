@@ -38,26 +38,26 @@ export function EmployeeTimeline({ slots, dateLabel = "Today's schedule" }: Empl
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-xs">
-        <div className="relative max-h-[380px] space-y-2 overflow-y-auto pr-1">
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3 text-xs sm:p-4">
+        <div className="relative max-h-[380px] space-y-1.5 overflow-y-auto pr-1">
           {slots.map((slot) => (
             <div
               key={slot.label}
-              className="flex items-center gap-3"
+              className="flex items-center gap-2"
             >
-              <div className="w-12 shrink-0 text-[11px] text-slate-400">
+              <div className="w-10 shrink-0 text-[10px] text-slate-400 sm:w-12 sm:text-[11px]">
                 {slot.label}
               </div>
               <div className="relative flex-1">
-                <div className="h-7 rounded-full bg-slate-900/80">
+                <div className="h-6 rounded-full bg-slate-900/80 sm:h-7">
                   <div
-                    className={`h-7 w-2/3 rounded-full transition-all duration-200 ${statusToClasses(
+                    className={`h-6 w-2/3 rounded-full transition-all duration-200 sm:h-7 ${statusToClasses(
                       slot.status
                     )}`}
                   />
                 </div>
               </div>
-              <div className="w-28 shrink-0 text-right text-[11px] text-slate-400">
+              <div className="w-20 shrink-0 text-right text-[10px] text-slate-400 sm:w-28 sm:text-[11px]">
                 {slot.status === "FREE"
                   ? "Free"
                   : slot.status === "PENDING"

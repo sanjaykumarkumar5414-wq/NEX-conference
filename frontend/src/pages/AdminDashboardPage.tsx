@@ -63,10 +63,10 @@ export function AdminDashboardPage() {
 
   return (
     <>
-      <div className="flex w-full gap-6">
+      <div className="flex w-full flex-col gap-6 lg:flex-row">
         <div className="flex min-w-0 flex-1 flex-col gap-4">
-          <header className="flex items-center justify-between gap-4">
-            <div>
+          <header className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
               <h1 className="text-sm font-semibold text-slate-100">
                 HR admin dashboard
               </h1>
@@ -82,8 +82,8 @@ export function AdminDashboardPage() {
           </header>
 
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3 text-[11px]">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3 text-[11px] md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-slate-300">Filter by status</span>
                 <div className="flex flex-wrap gap-1.5">
                   {["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED"].map(
@@ -173,7 +173,7 @@ export function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="w-[320px] shrink-0 space-y-4">
+        <div className="mt-4 w-full space-y-4 lg:mt-0 lg:w-[320px] lg:shrink-0">
           <ManualBlockPanel token={token} onCreated={fetchBookings} />
           <AuditLogTimeline token={token} refreshKey={auditRefreshKey} />
         </div>

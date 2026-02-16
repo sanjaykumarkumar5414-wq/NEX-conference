@@ -159,14 +159,14 @@ export function ManualBlockPanel({ token, onCreated }: ManualBlockPanelProps) {
           </div>
         )}
 
-        <div className="mt-1 flex items-center justify-between">
+        <div className="mt-1 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[10px] text-slate-500">
             Manual blocks will prevent new bookings in the selected window.
           </p>
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center justify-center rounded-full bg-brand px-4 py-1.5 text-[11px] font-medium text-white shadow-lg shadow-brand/40 transition-transform transition-colors duration-150 hover:-translate-y-0.5 hover:bg-brand-soft disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center rounded-full bg-brand px-4 py-1.5 text-[11px] font-medium text-white shadow-lg shadow-brand/40 transition-transform transition-colors duration-150 hover:-translate-y-0.5 hover:bg-brand-soft disabled:opacity-60 sm:w-auto"
           >
             {submitting ? "Blocking…" : "Block slot"}
           </button>

@@ -104,8 +104,8 @@ export function BookingRequestModal({
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl shadow-black/50">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 px-3 py-4 sm:px-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-4 shadow-2xl shadow-black/50 sm:p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-sm font-semibold text-slate-100">
@@ -129,7 +129,7 @@ export function BookingRequestModal({
           className="mt-4 space-y-4 text-xs"
           onSubmit={handleSubmit}
         >
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1">
               <label
                 htmlFor="booking-date"
@@ -249,7 +249,7 @@ export function BookingRequestModal({
             </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-between">
+          <div className="mt-3 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[10px] text-slate-500">
               Submitting does not guarantee a booking. You&apos;ll receive an
               update once HR reviews your request.
@@ -257,7 +257,7 @@ export function BookingRequestModal({
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center justify-center rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white shadow-lg shadow-brand/40 hover:bg-brand-soft disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white shadow-lg shadow-brand/40 hover:bg-brand-soft disabled:opacity-60 sm:w-auto"
             >
               {submitting ? "Submitting…" : "Submit request"}
             </button>
