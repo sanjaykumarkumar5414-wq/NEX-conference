@@ -62,7 +62,7 @@ export function LoginForm() {
       }
 
       const baseUrl =
-        (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
+        (import.meta as any).env?.VITE_API_BASE_URL ?? "/api";
 
       void (async () => {
         try {
@@ -104,7 +104,7 @@ export function LoginForm() {
       }
 
       const baseUrl =
-        (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
+        (import.meta as any).env?.VITE_API_BASE_URL ?? "/api";
 
       void (async () => {
         try {
@@ -143,7 +143,7 @@ export function LoginForm() {
     if (!validateCommon()) return;
 
     const baseUrl =
-      (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
+      (import.meta as any).env?.VITE_API_BASE_URL ?? "/api";
 
     void (async () => {
       try {

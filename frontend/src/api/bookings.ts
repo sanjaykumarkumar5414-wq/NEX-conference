@@ -5,7 +5,8 @@
 import { triggerUnauthorized } from "./authCallback";
 
 const getBaseUrl = () =>
-  (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
+  (import.meta as ImportMeta & { env: ImportMetaEnv & { VITE_API_BASE_URL?: string } }).env
+    .VITE_API_BASE_URL ?? "/api";
 
 export interface Booking {
   id: string;
