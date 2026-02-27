@@ -3,11 +3,12 @@ import { gsap } from "gsap";
 import { ShellLayout } from "./layouts/ShellLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { AuthLayout } from "./layouts/AuthLayout";
+import { RegistrationPage } from "./pages/RegistrationPage";
 import { EmployeeDashboardPage } from "./pages/EmployeeDashboardPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { useAuth } from "./context/AuthContext";
 
-type View = "landing" | "login" | "employee" | "admin";
+type View = "landing" | "login" | "register" | "employee" | "admin";
 
 export default function App() {
   const appRef = useRef<HTMLDivElement | null>(null);
@@ -38,11 +39,32 @@ export default function App() {
     setView("login");
   };
 
+  const handleGoToRegister = () => {
+    setView("register");
+  };
+
+  const handleGoToLanding = () => {
+    setView("landing");
+  };
+
+  const isPublicView = view === "landing" || view === "login" || view === "register";
+
   return (
     <div ref={appRef} className="min-h-screen bg-slate-950 text-slate-50">
-      <ShellLayout showHeader={view !== "landing"}>
-        {view === "landing" && <LandingPage onGoToLogin={handleGoToLogin} />}
-        {view === "login" && <AuthLayout />}
+      <ShellLayout
+        showHeader={view !== "landing"}
+        onLogoClick={isPublicView ? handleGoToLanding : undefined}
+      >
+        {view === "landing" && (
+          <LandingPage
+            onGoToLogin={handleGoToLogin}
+            onGoToRegister={handleGoToRegister}
+          />
+        )}
+        {view === "login" && <AuthLayout onGoToRegister={handleGoToRegister} />}
+        {view === "register" && (
+          <RegistrationPage onSuccess={handleGoToLogin} />
+        )}
         {view === "employee" && <EmployeeDashboardPage />}
         {view === "admin" && <AdminDashboardPage />}
       </ShellLayout>

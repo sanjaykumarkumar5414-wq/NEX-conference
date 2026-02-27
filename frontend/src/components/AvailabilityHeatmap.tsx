@@ -1,9 +1,10 @@
 /**
- * Shared Availability Heatmap — real data, current week Mon–Fri, 09:00–18:00.
+ * Shared Availability Heatmap — real data, selected week Mon–Fri, 09:00–18:00.
  * Reads from central booking state; updates when bookings change (approve, reject, block, reschedule).
+ * User can navigate to previous/next week to view availability for that week.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Booking } from "../api/bookings";
 
 export type HeatmapCellStatus =
@@ -44,6 +45,17 @@ function addDays(dateStr: string, days: number): string {
   return `${yy}-${mm}-${dd}`;
 }
 
+/** Format week range for display (e.g. "24 – 28 Feb 2026") */
+function formatWeekRange(mondayStr: string): string {
+  const mon = new Date(mondayStr);
+  const fri = addDays(mondayStr, 4);
+  const [y, m, d] = fri.split("-").map(Number);
+  const friDate = new Date(y, m - 1, d);
+  const monthShort = friDate.toLocaleDateString("en-GB", { month: "short" });
+  const year = friDate.getFullYear();
+  return `${mon.getDate()} – ${friDate.getDate()} ${monthShort} ${year}`;
+}
+
 /** Priority: BLOCK/EMERGENCY > APPROVED/RESCHEDULED > PENDING > FREE */
 function statusForOverlapping(bookings: Booking[]): HeatmapCellStatus {
   const hasBlock = bookings.some((b) => b.type === "BLOCK");
@@ -63,14 +75,14 @@ function statusForOverlapping(bookings: Booking[]): HeatmapCellStatus {
 }
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-const HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17]; // 09:00–18:00 (9 one-hour slots)
+// 07:00–18:00 (11 one-hour slots: 07–08, ..., 17–18)
+const HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 
-function buildHeatmapMatrix(bookings: Booking[]): HeatmapCell[][] {
-  const mondayStr = getCurrentWeekMonday();
+function buildHeatmapMatrix(bookings: Booking[], weekMonday: string): HeatmapCell[][] {
   const matrix: HeatmapCell[][] = [];
 
   for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
-    const dateStr = addDays(mondayStr, dayIndex);
+    const dateStr = addDays(weekMonday, dayIndex);
     const row: HeatmapCell[] = [];
 
     for (const hour of HOURS) {
@@ -117,18 +129,45 @@ interface AvailabilityHeatmapProps {
 }
 
 export function AvailabilityHeatmap({ bookings }: AvailabilityHeatmapProps) {
-  const matrix = useMemo(() => buildHeatmapMatrix(bookings), [bookings]);
+  const [weekMonday, setWeekMonday] = useState(() => getCurrentWeekMonday());
+  const matrix = useMemo(() => buildHeatmapMatrix(bookings, weekMonday), [bookings, weekMonday]);
+
+  const goPrevWeek = () => {
+    setWeekMonday((prev) => addDays(prev, -7));
+  };
+  const goNextWeek = () => {
+    setWeekMonday((prev) => addDays(prev, 7));
+  };
 
   return (
     <section className="space-y-4">
-      <div className="flex items-baseline justify-between">
+      <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-baseline sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">
             Availability heatmap
           </h2>
           <p className="text-xs text-slate-400">
-            Current week (Mon–Fri), 09:00–18:00. Real-time room availability from bookings and blocks.
+            Selected week (Mon–Fri), 09:00–18:00. Real-time room availability from bookings and blocks.
           </p>
+        </div>
+        <div className="flex items-center gap-2 text-[11px] text-slate-400">
+          <button
+            type="button"
+            onClick={goPrevWeek}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 hover:border-slate-500"
+          >
+            Previous week
+          </button>
+          <span className="min-w-[140px] text-center font-medium text-slate-200">
+            {formatWeekRange(weekMonday)}
+          </span>
+          <button
+            type="button"
+            onClick={goNextWeek}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 hover:border-slate-500"
+          >
+            Next week
+          </button>
         </div>
       </div>
 
@@ -141,7 +180,7 @@ export function AvailabilityHeatmap({ bookings }: AvailabilityHeatmapProps) {
             <LegendPill color="bg-sky-500/90" label="Block / Emergency" />
           </div>
           <span className="text-slate-500">
-            Each cell = 1 hour · Current week only
+            Each cell = 1 hour · Selected week
           </span>
         </div>
 

@@ -7,6 +7,8 @@ export interface CalendarDay {
   day: number;
   status: DayStatus;
   isPast: boolean;
+   isBookable: boolean;
+   isFullyBooked: boolean;
 }
 
 interface EmployeeCalendarProps {
@@ -24,9 +26,10 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-function statusColor(status: DayStatus) {
+function statusColor(status: DayStatus, isFullyBooked: boolean): string {
   switch (status) {
     case "BOOKED":
+      return isFullyBooked ? "bg-red-500/80" : "bg-amber-700/80";
     case "BLOCKED":
       return "bg-red-500/80";
     case "PENDING":
@@ -94,27 +97,33 @@ export function EmployeeCalendar({
           {leadingBlanks.map((i) => (
             <div key={`blank-${i}`} className="rounded-xl bg-slate-950/40 p-2" />
           ))}
-          {days.map(({ dateStr, day, status, isPast }) => {
+          {days.map(({ dateStr, day, status, isPast, isBookable, isFullyBooked }) => {
             const isSelected = selectedDate === dateStr;
-            const colorClass = statusColor(status);
+            const isDisabled = isPast || !isBookable;
+            const colorClass = statusColor(status, isFullyBooked);
+            const dayOfWeek = new Date(dateStr).getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
             return (
               <button
                 key={dateStr}
                 type="button"
                 onClick={() => onSelectDay(dateStr)}
-                disabled={false}
+                disabled={isDisabled}
                 className={`group flex flex-col items-center gap-1 rounded-xl border px-1.5 py-1.5 transition sm:px-2 sm:py-2 ${
-                  isPast
+                  isDisabled
                     ? "cursor-default border-slate-800/50 bg-slate-900/40 opacity-80"
                     : "border-slate-800/70 bg-slate-900/60 hover:border-slate-600/80"
                 } ${isSelected ? "ring-2 ring-brand/60" : ""}`}
               >
                 <span className="text-[10px] text-slate-200 sm:text-[11px]">{day}</span>
                 <span
-                  className={`h-1.5 w-6 rounded-full ${colorClass} ${!isPast ? "group-hover:scale-105" : ""}`}
+                  className={`h-1.5 w-6 rounded-full ${colorClass} ${!isDisabled ? "group-hover:scale-105" : ""}`}
                 />
                 {isPast && (
                   <span className="text-[9px] text-slate-500">Read-only</span>
+                )}
+                {!isPast && isWeekend && (
+                  <span className="text-[9px] text-slate-500">Weekend</span>
                 )}
               </button>
             );

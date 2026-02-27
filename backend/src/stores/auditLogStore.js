@@ -51,7 +51,7 @@ export async function getAuditEntries() {
         created_at as at
        FROM audit_logs
        ORDER BY created_at DESC
-       LIMIT 200`
+       LIMIT 7`
     );
 
     return rows.map((row) => ({

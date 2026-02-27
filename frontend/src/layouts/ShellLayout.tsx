@@ -5,21 +5,29 @@ import logoImg from "../../assets/logo.png";
 interface ShellLayoutProps {
   children: ReactNode;
   showHeader?: boolean;
+  onLogoClick?: () => void;
 }
 
-export function ShellLayout({ children, showHeader = true }: ShellLayoutProps) {
+export function ShellLayout({
+  children,
+  showHeader = true,
+  onLogoClick
+}: ShellLayoutProps) {
   const { user, logout } = useAuth();
 
   return (
     <div className="flex min-h-screen flex-col">
       {showHeader && (
         <header className="border-b border-slate-800 bg-slate-950/60 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+          <div className="flex w-full flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <img
                 src={logoImg}
                 alt="NEX Conference Room"
-                className="h-10 w-auto shrink-0"
+                className={`h-10 w-auto shrink-0 ${
+                  onLogoClick ? "cursor-pointer" : ""
+                }`}
+                onClick={onLogoClick}
               />
               <div>
                 <p className="text-xs font-semibold tracking-wide text-slate-100 sm:text-sm">

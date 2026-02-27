@@ -117,7 +117,8 @@ export async function createBooking({
   isEmergency = false,
   type = "REQUEST",
   status = "PENDING",
-  notes
+  notes,
+  project
 }) {
   const connection = await pool.getConnection();
   try {
@@ -151,6 +152,10 @@ export async function createBooking({
       userId = Number(userId);
     }
 
+    const combinedNotes = [notes, project ? `Project: ${project}` : ""]
+      .filter((v) => v && String(v).trim())
+      .join(" | ");
+
     await connection.query(
       `INSERT INTO bookings (
         id, room_id, user_id, requester_email, requester_name,
@@ -170,7 +175,7 @@ export async function createBooking({
         safeStatus,
         safeType,
         Boolean(isEmergency),
-        notes || null
+        combinedNotes || null
       ]
     );
 

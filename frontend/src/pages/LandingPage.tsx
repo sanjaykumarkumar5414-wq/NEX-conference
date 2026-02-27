@@ -1,14 +1,16 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import conferenceImg from "../../assets/conference.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
 interface LandingPageProps {
   onGoToLogin?: () => void;
+  onGoToRegister?: () => void;
 }
 
-export function LandingPage({ onGoToLogin }: LandingPageProps) {
+export function LandingPage({ onGoToLogin, onGoToRegister }: LandingPageProps) {
   const pageRef = useRef<HTMLDivElement | null>(null);
   const heroImageRef = useRef<HTMLDivElement | null>(null);
   const heroTextRef = useRef<HTMLDivElement | null>(null);
@@ -125,8 +127,7 @@ export function LandingPage({ onGoToLogin }: LandingPageProps) {
         ref={heroImageRef}
         className="absolute inset-0 z-0 transition-transform duration-[400ms] ease-out hover:scale-[1.02]"
         style={{
-          backgroundImage:
-            "linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.65)), url(/assets/conference.png)",
+          backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.65)), url(${conferenceImg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -176,12 +177,21 @@ export function LandingPage({ onGoToLogin }: LandingPageProps) {
           <h1 className="text-2xl font-bold leading-tight tracking-tight text-slate-50 sm:text-3xl">
             Bring order to your most important meeting room.
           </h1>
-          <div className="relative shrink-0">
+          <div className="relative flex shrink-0 flex-wrap items-center gap-2 sm:gap-3">
             {/* Subtle glow halo behind CTA */}
             <div
               className="absolute -inset-1 rounded-xl bg-gradient-to-r from-indigo-500/30 to-purple-500/30 blur-md opacity-60"
               aria-hidden
             />
+            {onGoToRegister && (
+              <button
+                type="button"
+                onClick={onGoToRegister}
+                className="relative inline-flex shrink-0 items-center justify-center rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-slate-50 backdrop-blur transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.02] hover:border-white/50 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:ring-offset-2 focus:ring-offset-slate-950"
+              >
+                Register
+              </button>
+            )}
             <button
               ref={heroCtaRef}
               type="button"

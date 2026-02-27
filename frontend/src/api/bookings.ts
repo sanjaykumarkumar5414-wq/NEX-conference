@@ -56,10 +56,17 @@ export async function createBooking(
   body: {
     title?: string;
     purpose?: string;
-    startTime: string;
-    endTime: string;
+    startTime?: string;
+    endTime?: string;
     roomId?: string;
     isEmergency?: boolean;
+    type?: "REQUEST" | "EMERGENCY" | "BLOCK";
+    notes?: string;
+    startDate?: string;
+    endDate?: string;
+    blockStartTime?: string;
+    blockEndTime?: string;
+    project?: string;
   }
 ): Promise<Booking> {
   const res = await fetch(`${getBaseUrl()}/bookings`, {
@@ -89,6 +96,19 @@ export async function updateBookingStatus(
     const data = await res.json().catch(() => ({}));
     if (res.status === 401) triggerUnauthorized();
     throw new Error((data as { message?: string }).message ?? "Failed to update booking.");
+  }
+  return res.json() as Promise<Booking>;
+}
+
+export async function cancelBooking(token: string, bookingId: string): Promise<Booking> {
+  const res = await fetch(`${getBaseUrl()}/bookings/${bookingId}/cancel`, {
+    method: "POST",
+    headers: authHeaders(token)
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) triggerUnauthorized();
+    throw new Error((data as { message?: string }).message ?? "Failed to cancel booking.");
   }
   return res.json() as Promise<Booking>;
 }

@@ -8,7 +8,9 @@ import { AdminCalendarView } from "../modules/admin/AdminCalendarView";
 import { BookingActionModal } from "../modules/admin/BookingActionModal";
 import { ManualBlockPanel } from "../modules/admin/ManualBlockPanel";
 import { AuditLogTimeline } from "../modules/admin/AuditLogTimeline";
+import { ReportsPanel } from "../modules/admin/ReportsPanel";
 import { AvailabilityHeatmap } from "../components/AvailabilityHeatmap";
+import { EmployeeManagementPanel } from "../modules/admin/EmployeeManagementPanel";
 
 type FilterStatus = "ALL" | "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
 
@@ -169,7 +171,9 @@ export function AdminDashboardPage() {
               </div>
             </div>
 
+            <ReportsPanel />
             <AvailabilityHeatmap bookings={bookings} />
+            <EmployeeManagementPanel />
           </div>
         </div>
 

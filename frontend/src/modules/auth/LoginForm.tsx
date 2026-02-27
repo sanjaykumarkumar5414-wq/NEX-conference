@@ -3,7 +3,13 @@ import { useAuth } from "../../context/AuthContext";
 
 type Role = "EMPLOYEE" | "ADMIN";
 
-export function LoginForm() {
+const NOT_REGISTERED_MESSAGE = "You are not registered. Please register first.";
+
+interface LoginFormProps {
+  onGoToRegister?: () => void;
+}
+
+export function LoginForm({ onGoToRegister }: LoginFormProps) {
   const { login } = useAuth();
   const [role, setRole] = useState<Role>("EMPLOYEE");
   const [email, setEmail] = useState("");
@@ -62,7 +68,7 @@ export function LoginForm() {
       }
 
       const baseUrl =
-        (import.meta as any).env?.VITE_API_BASE_URL ?? "/api";
+        (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
 
       void (async () => {
         try {
@@ -104,7 +110,7 @@ export function LoginForm() {
       }
 
       const baseUrl =
-        (import.meta as any).env?.VITE_API_BASE_URL ?? "/api";
+        (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
 
       void (async () => {
         try {
@@ -143,7 +149,7 @@ export function LoginForm() {
     if (!validateCommon()) return;
 
     const baseUrl =
-      (import.meta as any).env?.VITE_API_BASE_URL ?? "/api";
+      (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
 
     void (async () => {
       try {
@@ -268,14 +274,25 @@ export function LoginForm() {
         )}
 
         {(error || message) && (
-          <div
-            className={`rounded-lg border px-3 py-2 text-xs ${
-              error
-                ? "border-red-500/60 bg-red-500/10 text-red-200"
-                : "border-emerald-500/60 bg-emerald-500/10 text-emerald-200"
-            }`}
-          >
-            {error ?? message}
+          <div className="space-y-2">
+            <div
+              className={`rounded-lg border px-3 py-2 text-xs ${
+                error
+                  ? "border-red-500/60 bg-red-500/10 text-red-200"
+                  : "border-emerald-500/60 bg-emerald-500/10 text-emerald-200"
+              }`}
+            >
+              {error ?? message}
+            </div>
+            {error === NOT_REGISTERED_MESSAGE && onGoToRegister && (
+              <button
+                type="button"
+                onClick={onGoToRegister}
+                className="w-full rounded-lg border border-brand/60 bg-brand/10 px-3 py-2 text-sm font-medium text-brand hover:bg-brand/20 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:ring-offset-2 focus:ring-offset-slate-900"
+              >
+                Register Now
+              </button>
+            )}
           </div>
         )}
 

@@ -98,6 +98,37 @@ export async function createTablesIfNotExists() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
+    // Create employees table for registration
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS employees (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        employee_id VARCHAR(255) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        project VARCHAR(255) NOT NULL,
+        phone_number VARCHAR(255) NOT NULL,
+        manager_name VARCHAR(255) NOT NULL,
+        is_blocked BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_email (email),
+        INDEX idx_employee_id (employee_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // Create login_history table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS login_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ip_address VARCHAR(45),
+        status ENUM('SUCCESS', 'FAILED') NOT NULL,
+        otp_verified BOOLEAN NOT NULL,
+        INDEX idx_email (email),
+        INDEX idx_login_time (login_time)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
     // eslint-disable-next-line no-console
     console.log("[DB] All tables created/verified successfully");
   } catch (error) {

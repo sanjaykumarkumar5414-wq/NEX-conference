@@ -7,33 +7,37 @@ interface ManualBlockPanelProps {
 }
 
 export function ManualBlockPanel({ token, onCreated }: ManualBlockPanelProps) {
-  const dateRef = useRef<HTMLInputElement>(null);
   const timeStartRef = useRef<HTMLInputElement>(null);
   const timeEndRef = useRef<HTMLInputElement>(null);
   const reasonRef = useRef<HTMLSelectElement>(null);
   const notesRef = useRef<HTMLTextAreaElement>(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    const date = dateRef.current?.value;
     const start = timeStartRef.current?.value;
     const end = timeEndRef.current?.value;
     const reason = reasonRef.current?.value ?? "";
     const notes = notesRef.current?.value ?? "";
-    if (!date || !start || !end) {
-      setError("Please select date and time range for the block.");
+    if (!startDate || !endDate || !start || !end) {
+      setError("Please select start date, end date, and time range for the block.");
+      return;
+    }
+    if (endDate < startDate) {
+      setError("End date must be the same as or after the start date.");
       return;
     }
     if (!token) {
       setError("You must be signed in as HR to block a slot.");
       return;
     }
-    const startTime = `${date}T${start}:00`;
-    const endTime = `${date}T${end}:00`;
-    if (new Date(endTime) <= new Date(startTime)) {
+    const startTime = `${start}:00`;
+    const endTime = `${end}:00`;
+    if (new Date(`2000-01-01T${endTime}`) <= new Date(`2000-01-01T${startTime}`)) {
       setError("End time must be after start time.");
       return;
     }
@@ -42,8 +46,10 @@ export function ManualBlockPanel({ token, onCreated }: ManualBlockPanelProps) {
       await createBooking(token, {
         title: reason || "Manual block",
         purpose: notes || reason || "Manual block",
-        startTime,
-        endTime,
+        startDate,
+        endDate,
+        blockStartTime: start,
+        blockEndTime: end,
         type: "BLOCK"
       } as any);
       onCreated?.();
@@ -69,24 +75,43 @@ export function ManualBlockPanel({ token, onCreated }: ManualBlockPanelProps) {
       </div>
 
       <form
-        className="space-y-3 max-w-full min-w-0"
+        className="space-y-4 max-w-full min-w-0"
         onSubmit={handleSubmit}
       >
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] md:grid-rows-2 lg:grid-cols-[minmax(0,1.5fr)_1fr_auto_1fr] lg:grid-rows-1 gap-4 items-end min-w-0">
-          <div className="space-y-1 min-w-0 md:col-span-3 lg:col-span-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+          <div className="space-y-1 min-w-0">
             <label
-              htmlFor="block-date"
+              htmlFor="block-start-date"
               className="block text-slate-200"
             >
-              Date
+              Start date
             </label>
             <input
-              ref={dateRef}
-              id="block-date"
+              id="block-start-date"
               type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
               className="h-9 w-full min-w-0 max-w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 pr-8 text-xs text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand [color-scheme:dark]"
             />
           </div>
+          <div className="space-y-1 min-w-0">
+            <label
+              htmlFor="block-end-date"
+              className="block text-slate-200"
+            >
+              End date
+            </label>
+            <input
+              id="block-end-date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="h-9 w-full min-w-0 max-w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 pr-8 text-xs text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand [color-scheme:dark]"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-end min-w-0">
           <div className="space-y-1 min-w-0">
             <label className="block text-slate-200">
               Start Time

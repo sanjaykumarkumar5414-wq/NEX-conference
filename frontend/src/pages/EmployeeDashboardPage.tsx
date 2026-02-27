@@ -12,6 +12,7 @@ import { AvailabilityHeatmap } from "../components/AvailabilityHeatmap";
 import { BookingRequestModal } from "../modules/employee/BookingRequestModal";
 import { EmployeeDashboardSkeleton } from "../modules/employee/EmployeeDashboardSkeleton";
 import { SmartSuggestionsPanel } from "../modules/employee/SmartSuggestionsPanel";
+import { MyBookingsPanel } from "../modules/employee/MyBookingsPanel";
 
 function todayDateStr(): string {
   const t = new Date();
@@ -136,6 +137,12 @@ export function EmployeeDashboardPage() {
             onSelectDay={handleSelectDay}
           />
           <AvailabilityHeatmap bookings={bookings} />
+          <MyBookingsPanel
+            bookings={bookings}
+            userId={userId}
+            token={token}
+            onChanged={fetchBookings}
+          />
         </div>
         <div className="mt-4 w-full space-y-4 lg:mt-0 lg:w-[360px] lg:shrink-0">
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -179,6 +186,8 @@ export function EmployeeDashboardPage() {
         initialDate={initialModalDate}
         token={token}
         onCreated={fetchBookings}
+        bookings={bookings}
+        userId={userId}
       />
     </>
   );

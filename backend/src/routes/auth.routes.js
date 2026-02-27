@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   adminLogin,
+  registerEmployee,
   requestEmployeeOtp,
   verifyEmployeeOtp
 } from "../services/authService.js";
@@ -12,6 +13,31 @@ authRouter.post("/admin/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const result = await adminLogin({ email, password });
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/auth/register
+authRouter.post("/register", async (req, res, next) => {
+  try {
+    const {
+      employee_id,
+      name,
+      email,
+      project,
+      phone_number,
+      manager_name
+    } = req.body;
+    const result = await registerEmployee({
+      employee_id,
+      name,
+      email,
+      project,
+      phone_number,
+      manager_name
+    });
     res.json(result);
   } catch (error) {
     next(error);
@@ -33,7 +59,8 @@ authRouter.post("/employee/request-otp", async (req, res, next) => {
 authRouter.post("/employee/verify-otp", async (req, res, next) => {
   try {
     const { email, otp } = req.body;
-    const result = await verifyEmployeeOtp({ email, otp });
+    const ip_address = req.ip || req.socket?.remoteAddress;
+    const result = await verifyEmployeeOtp({ email, otp, ip_address });
     res.json(result);
   } catch (error) {
     next(error);

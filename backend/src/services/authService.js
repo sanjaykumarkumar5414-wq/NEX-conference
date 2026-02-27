@@ -7,6 +7,13 @@ import {
   createOrGetEmployee,
   createOrGetAdmin
 } from "../stores/memoryAuthStore.js";
+import {
+  getEmployeeByEmail,
+  registerEmployee as insertEmployee,
+  existsEmployeeId,
+  existsEmployeeEmail,
+  insertLoginHistory
+} from "../stores/employeeStore.js";
 import { sendOtpEmail } from "./emailService.js";
 
 const ADMIN_EMAIL = "hr@nexware-global.com";
@@ -61,6 +68,105 @@ export async function adminLogin({ email, password }) {
   };
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function registerEmployee({
+  employee_id,
+  name,
+  email,
+  project,
+  phone_number,
+  manager_name
+}) {
+  const trim = (v) => (v != null ? String(v).trim() : "");
+  const eid = trim(employee_id);
+  const n = trim(name);
+  const em = trim(email);
+  const p = trim(project);
+  const ph = trim(phone_number);
+  const mgr = trim(manager_name);
+
+  if (!eid) {
+    const err = new Error("Employee ID is required.");
+    err.status = 400;
+    err.code = "ValidationError";
+    throw err;
+  }
+  if (!n) {
+    const err = new Error("Employee Name is required.");
+    err.status = 400;
+    err.code = "ValidationError";
+    throw err;
+  }
+  if (!em) {
+    const err = new Error("Email is required.");
+    err.status = 400;
+    err.code = "ValidationError";
+    throw err;
+  }
+  if (!EMAIL_REGEX.test(em)) {
+    const err = new Error("Email must be a valid format.");
+    err.status = 400;
+    err.code = "ValidationError";
+    throw err;
+  }
+  if (!em.toLowerCase().endsWith("@nexware-global.com")) {
+    const err = new Error(
+      "Only nexware-global.com email addresses are allowed for registration."
+    );
+    err.status = 400;
+    err.code = "ValidationError";
+    throw err;
+  }
+  if (!p) {
+    const err = new Error("Project is required.");
+    err.status = 400;
+    err.code = "ValidationError";
+    throw err;
+  }
+  if (!ph) {
+    const err = new Error("Phone Number is required.");
+    err.status = 400;
+    err.code = "ValidationError";
+    throw err;
+  }
+  if (!mgr) {
+    const err = new Error("Manager Name is required.");
+    err.status = 400;
+    err.code = "ValidationError";
+    throw err;
+  }
+
+  const key = em.toLowerCase();
+  const [idTaken, emailTaken] = await Promise.all([
+    existsEmployeeId(eid),
+    existsEmployeeEmail(key)
+  ]);
+  if (idTaken) {
+    const err = new Error("Employee ID is already registered.");
+    err.status = 409;
+    err.code = "DuplicateEmployeeId";
+    throw err;
+  }
+  if (emailTaken) {
+    const err = new Error("Email is already registered.");
+    err.status = 409;
+    err.code = "DuplicateEmail";
+    throw err;
+  }
+
+  await insertEmployee({
+    employee_id: eid,
+    name: n,
+    email: key,
+    project: p,
+    phone_number: ph,
+    manager_name: mgr
+  });
+
+  return { message: "Registration successful. Please login using OTP." };
+}
+
 export async function requestEmployeeOtp({ email }) {
   if (!email || typeof email !== "string") {
     const error = new Error("Email is required.");
@@ -87,6 +193,22 @@ export async function requestEmployeeOtp({ email }) {
     throw error;
   }
 
+  const employee = await getEmployeeByEmail(lower);
+  if (!employee) {
+    const error = new Error("You are not registered. Please register first.");
+    error.status = 403;
+    error.code = "NotRegistered";
+    throw error;
+  }
+  if (employee.is_blocked) {
+    const error = new Error(
+      "Your account has been restricted. Please contact HR."
+    );
+    error.status = 403;
+    error.code = "AccountBlocked";
+    throw error;
+  }
+
   const code = String(Math.floor(100000 + Math.random() * 900000));
   const codeHash = await bcrypt.hash(code, 10);
   const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000);
@@ -101,7 +223,7 @@ export async function requestEmployeeOtp({ email }) {
   };
 }
 
-export async function verifyEmployeeOtp({ email, otp }) {
+export async function verifyEmployeeOtp({ email, otp, ip_address }) {
   if (!email || !otp) {
     const error = new Error("Email and OTP are required.");
     error.status = 400;
@@ -115,6 +237,12 @@ export async function verifyEmployeeOtp({ email, otp }) {
 
   const entry = await getValidOtp(lower);
   if (!entry) {
+    await insertLoginHistory({
+      email: lower,
+      ip_address,
+      status: "FAILED",
+      otp_verified: false
+    });
     const error = new Error("No valid OTP found or OTP has expired.");
     error.status = 400;
     error.code = "OtpNotFound";
@@ -123,6 +251,12 @@ export async function verifyEmployeeOtp({ email, otp }) {
 
   const isValid = await bcrypt.compare(otp, entry.codeHash);
   if (!isValid) {
+    await insertLoginHistory({
+      email: lower,
+      ip_address,
+      status: "FAILED",
+      otp_verified: false
+    });
     const error = new Error("Invalid OTP.");
     error.status = 401;
     error.code = "InvalidOtp";
@@ -130,6 +264,12 @@ export async function verifyEmployeeOtp({ email, otp }) {
   }
 
   await markOtpConsumed(lower);
+  await insertLoginHistory({
+    email: lower,
+    ip_address,
+    status: "SUCCESS",
+    otp_verified: true
+  });
 
   const token = signJwt({
     id: user.id,

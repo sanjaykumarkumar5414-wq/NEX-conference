@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { createBooking } from "../../api/bookings";
+import { createBooking, type Booking } from "../../api/bookings";
+import { isDateBookable } from "./calendarData";
 
 interface BookingRequestModalProps {
   open: boolean;
@@ -8,7 +9,11 @@ interface BookingRequestModalProps {
   initialDate?: string;
   token: string | null;
   onCreated?: () => void;
+  bookings: Booking[];
+  userId: string | null | undefined;
 }
+
+const PROJECT_OPTIONS = ["Fuso", "Infra", "Testing", "HR", "Rakuten", "other"];
 
 const PURPOSE_GROUPS: { label: string; options: string[] }[] = [
   { label: "Client Related", options: ["Client Interview", "Client Discussion", "Client Meeting", "Client Presentation"] },
@@ -27,7 +32,9 @@ export function BookingRequestModal({
   onClose,
   initialDate,
   token,
-  onCreated
+  onCreated,
+  bookings,
+  userId
 }: BookingRequestModalProps) {
   const dateInputRef = useRef<HTMLInputElement>(null);
   const timeStartRef = useRef<HTMLInputElement>(null);
@@ -37,15 +44,22 @@ export function BookingRequestModal({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [selectedPurpose, setSelectedPurpose] = useState("");
+  const [project, setProject] = useState("");
+  const [specifyProject, setSpecifyProject] = useState("");
   const defaultDate = initialDate && initialDate >= todayDateStr() ? initialDate : todayDateStr();
 
   useEffect(() => {
-    if (open) setSelectedPurpose("");
+    if (open) {
+      setSelectedPurpose("");
+      setProject("");
+      setSpecifyProject("");
+    }
   }, [open]);
 
   if (!open) return null;
 
   const isOthers = selectedPurpose === "Others";
+  const isProjectOther = project === "other";
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -67,6 +81,25 @@ export function BookingRequestModal({
       setSubmitError("End time must be after start time.");
       return;
     }
+
+    if (!isDateBookable(dateValue)) {
+      setSubmitError(
+        "Selected date is not bookable. You can book weekdays in the current week only; next week opens on Thursday."
+      );
+      return;
+    }
+    const projectValue = project.trim();
+    if (!projectValue) {
+      setSubmitError("Please select a project.");
+      return;
+    }
+    if (isProjectOther) {
+      const customProject = specifyProject.trim();
+      if (!customProject) {
+        setSubmitError("Please specify the project.");
+        return;
+      }
+    }
     const purposeValue = purposeRef.current?.value ?? "";
     if (!purposeValue) {
       setSubmitError("Please select a purpose.");
@@ -86,13 +119,88 @@ export function BookingRequestModal({
     const title = purposeValue === "Others"
       ? (othersTextRef.current?.value?.trim() ?? "Other")
       : purposeValue;
+    if (userId) {
+      const newStart = new Date(startTime);
+      const newEnd = new Date(endTime);
+      const newStartMs = newStart.getTime();
+      const newEndMs = newEnd.getTime();
+
+      const sameDayUserBookings = bookings.filter((b) => {
+        if (b.requesterId !== userId) return false;
+        if (b.status === "CANCELLED" || b.status === "REJECTED") return false;
+        const existingDate = b.startTime.slice(0, 10);
+        return existingDate === dateValue;
+      });
+
+      const intervals: Array<[number, number]> = sameDayUserBookings.map((b) => [
+        new Date(b.startTime).getTime(),
+        new Date(b.endTime).getTime()
+      ]);
+      intervals.push([newStartMs, newEndMs]);
+
+      intervals.sort((a, b) => a[0] - b[0]);
+      let totalMs = 0;
+      if (intervals.length > 0) {
+        let [currentStart, currentEnd] = intervals[0];
+        for (let i = 1; i < intervals.length; i++) {
+          const [s, e] = intervals[i];
+          if (s <= currentEnd) {
+            currentEnd = Math.max(currentEnd, e);
+          } else {
+            totalMs += currentEnd - currentStart;
+            currentStart = s;
+            currentEnd = e;
+          }
+        }
+        totalMs += currentEnd - currentStart;
+      }
+      const totalHours = totalMs / (1000 * 60 * 60);
+      if (totalHours > 2) {
+        setSubmitError("You can book a maximum of 2 hours per day.");
+        return;
+      }
+
+      const startOfWeek = (iso: string): string => {
+        const [y, m, d] = iso.split("-").map(Number);
+        const date = new Date(y, m - 1, d);
+        date.setHours(0, 0, 0, 0);
+        const dayOfWeek = date.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        date.setDate(date.getDate() + mondayOffset);
+        const yy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+        return `${yy}-${mm}-${dd}`;
+      };
+
+      const newWeekStart = startOfWeek(dateValue);
+      const userActiveBookings = bookings.filter((b) => {
+        if (b.requesterId !== userId) return false;
+        if (b.status === "CANCELLED" || b.status === "REJECTED") return false;
+        const existingDate = b.startTime.slice(0, 10);
+        return startOfWeek(existingDate) === newWeekStart;
+      });
+
+      const uniqueDays = new Set<string>(
+        userActiveBookings.map((b) => b.startTime.slice(0, 10))
+      );
+      uniqueDays.add(dateValue);
+
+      if (uniqueDays.size > 3) {
+        setSubmitError("You can book a maximum of 3 slots per week.");
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
+      const projectToSave = isProjectOther ? specifyProject.trim() : projectValue;
       await createBooking(token, {
         title,
         purpose: title,
         startTime,
-        endTime
+        endTime,
+        project: projectToSave
       });
       onCreated?.();
       onClose();
@@ -166,6 +274,49 @@ export function BookingRequestModal({
               </div>
             </div>
           </div>
+
+          <div className="space-y-1">
+            <label
+              htmlFor="project"
+              className="block text-slate-200"
+            >
+              Project <span className="text-red-400">*</span>
+            </label>
+            <select
+              id="project"
+              value={project}
+              onChange={(e) => setProject(e.target.value)}
+              className="w-full min-w-0 max-w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-50 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            >
+              <option value="" disabled>
+                Select project
+              </option>
+              {PROJECT_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {isProjectOther && (
+            <div className="space-y-1">
+              <label
+                htmlFor="specify-project"
+                className="block text-slate-200"
+              >
+                Specify Project <span className="text-red-400">*</span>
+              </label>
+              <input
+                id="specify-project"
+                type="text"
+                value={specifyProject}
+                onChange={(e) => setSpecifyProject(e.target.value)}
+                placeholder="Enter project name"
+                className="w-full min-w-0 max-w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+              />
+            </div>
+          )}
 
           <div className="space-y-1">
             <label

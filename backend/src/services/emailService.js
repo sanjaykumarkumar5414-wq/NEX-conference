@@ -157,7 +157,7 @@ export async function sendBookingRejectedEmail(
       timeSlot
     )}</li><li>Title: ${escapeHtml(roomName)}</li></ul>` +
     `<p>has been <strong>REJECTED</strong> by HR.</p>` +
-    `<p><strong>Reason (optional):</strong> ${escapeHtml(displayReason)}</p>` +
+    `<p><strong>Reason:</strong> ${escapeHtml(displayReason)}</p>` +
     `<p>Please contact HR if needed.</p>`;
 
   await transporterInstance.sendMail({
@@ -200,6 +200,113 @@ export async function sendBookingRescheduledEmail(
     `<p><strong>Reason:</strong><br/>${escapeHtml(displayReason)}</p>` +
     `<p>If you have any questions, please contact HR.</p>` +
     `<p>Regards,<br/>HR Team<br/>Nexware Global</p>`;
+
+  await transporterInstance.sendMail({
+    from: noreplyFrom,
+    to: toEmail,
+    subject,
+    text,
+    html
+  });
+}
+
+export async function sendBookingRequestNotificationToHr({
+  employeeName,
+  employeeId,
+  date,
+  slotTime,
+  project
+}) {
+  const transporterInstance = getTransporter();
+  const { noreplyFrom } = assertSmtpConfig();
+  const hrEmail = "sanjaykumar.mahendran@nexware-global.com";
+
+  const subject = "New conference room booking request";
+  const text =
+    `Employee ${employeeName || "Unknown"} (ID: ${employeeId ?? "N/A"}) has requested a conference room slot.\n\n` +
+    `Date: ${date}\n` +
+    `Time: ${slotTime}\n` +
+    (project ? `Project: ${project}\n` : "") +
+    `\nPlease review this request in the HR dashboard.`;
+
+  const html =
+    `<p>Employee <strong>${escapeHtml(employeeName || "Unknown")}</strong> (ID: ${escapeHtml(
+      employeeId ?? "N/A"
+    )}) has requested a conference room slot.</p>` +
+    `<ul>` +
+    `<li>Date: ${escapeHtml(date)}</li>` +
+    `<li>Time: ${escapeHtml(slotTime)}</li>` +
+    (project ? `<li>Project: ${escapeHtml(project)}</li>` : "") +
+    `</ul>` +
+    `<p>Please review this request in the HR dashboard.</p>`;
+
+  await transporterInstance.sendMail({
+    from: noreplyFrom,
+    to: hrEmail,
+    subject,
+    text,
+    html
+  });
+}
+
+export async function sendBookingCancelledNotificationToHr({
+  employeeName,
+  employeeId,
+  date,
+  slotTime,
+  project,
+  purpose,
+  status
+}) {
+  const transporterInstance = getTransporter();
+  const { noreplyFrom } = assertSmtpConfig();
+  const hrEmail = "sanjaykumar.mahendran@nexware-global.com";
+
+  const subject = "Conference room booking cancelled by employee";
+  const text =
+    `Employee ${employeeName || "Unknown"} (ID: ${employeeId ?? "N/A"}) has cancelled a booking.\n\n` +
+    `Date: ${date}\n` +
+    `Time: ${slotTime}\n` +
+    (project ? `Project: ${project}\n` : "") +
+    `Purpose: ${purpose || "N/A"}\n` +
+    `Status: ${status}\n`;
+
+  const html =
+    `<p>Employee <strong>${escapeHtml(employeeName || "Unknown")}</strong> (ID: ${escapeHtml(
+      employeeId ?? "N/A"
+    )}) has <strong>cancelled</strong> a conference room booking.</p>` +
+    `<ul>` +
+    `<li>Date: ${escapeHtml(date)}</li>` +
+    `<li>Time: ${escapeHtml(slotTime)}</li>` +
+    (project ? `<li>Project: ${escapeHtml(project)}</li>` : "") +
+    `<li>Purpose: ${escapeHtml(purpose || "N/A")}</li>` +
+    `<li>Status: ${escapeHtml(status)}</li>` +
+    `</ul>`;
+
+  await transporterInstance.sendMail({
+    from: noreplyFrom,
+    to: hrEmail,
+    subject,
+    text,
+    html
+  });
+}
+
+/**
+ * Send HR warning message to an employee. Uses noreply address.
+ */
+export async function sendWarningEmail(toEmail, message) {
+  const transporterInstance = getTransporter();
+  const { noreplyFrom } = assertSmtpConfig();
+
+  const subject = "Conference Room – Message from HR";
+  const body = message && String(message).trim() ? String(message).trim() : "Please contact HR regarding your conference room usage.";
+
+  const text =
+    `Dear Colleague,\n\n${body}\n\nRegards,\nHR Team\nNexware Global`;
+
+  const html =
+    `<p>Dear Colleague,</p><p>${escapeHtml(body.replace(/\n/g, "<br/>"))}</p><p>Regards,<br/>HR Team<br/>Nexware Global</p>`;
 
   await transporterInstance.sendMail({
     from: noreplyFrom,

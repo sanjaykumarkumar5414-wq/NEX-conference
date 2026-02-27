@@ -13,7 +13,9 @@ import { addAuditEntry } from "../stores/auditLogStore.js";
 import {
   sendBookingApprovedEmail,
   sendBookingRejectedEmail,
-  sendBookingRescheduledEmail
+  sendBookingRescheduledEmail,
+  sendBookingRequestNotificationToHr,
+  sendBookingCancelledNotificationToHr
 } from "../services/emailService.js";
 
 export const bookingRouter = Router();
@@ -34,7 +36,7 @@ bookingRouter.get("/", authenticateJwt, async (req, res, next) => {
 // POST /api/bookings — create booking (employee request, HR emergency, or HR manual block)
 bookingRouter.post("/", authenticateJwt, async (req, res, next) => {
   try {
-    const { roomId, title, purpose, startTime, endTime, isEmergency, type, notes } =
+    const { roomId, title, purpose, startTime, endTime, isEmergency, type, notes, project } =
       req.body;
     const user = req.user;
     if (!startTime || !endTime) {
@@ -86,9 +88,106 @@ bookingRouter.post("/", authenticateJwt, async (req, res, next) => {
       isEmergency: emergency,
       type: isBlock ? "BLOCK" : emergency ? "EMERGENCY" : "REQUEST",
       status: isBlock ? "APPROVED" : "PENDING",
-      notes
+      notes,
+      project
     });
+    if (!isBlock && user.role === "EMPLOYEE") {
+      const pad = (n) => String(n).padStart(2, "0");
+      const start = new Date(booking.startTime);
+      const end = new Date(booking.endTime);
+      const dateStr = start.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+      const slotTime = `${pad(start.getHours())}:${pad(start.getMinutes())} - ${pad(
+        end.getHours()
+      )}:${pad(end.getMinutes())}`;
+      (async () => {
+        try {
+          await sendBookingRequestNotificationToHr({
+            employeeName: booking.requesterName,
+            employeeId: booking.requesterId,
+            date: dateStr,
+            slotTime,
+            project
+          });
+        } catch (emailError) {
+          // eslint-disable-next-line no-console
+          console.error(
+            "[Bookings] Failed to send HR request email:",
+            emailError?.message ?? emailError
+          );
+        }
+      })();
+    }
     res.status(201).json(booking);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/bookings/:id/cancel — employee cancels own booking
+bookingRouter.post("/:id/cancel", authenticateJwt, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    const existing = await findBookingById(id);
+    if (!existing) {
+      return res.status(404).json({ message: "Booking not found." });
+    }
+
+    const isOwner =
+      String(existing.requesterId) === String(user.dbUserId ?? user.id);
+    if (!isOwner || user.role !== "EMPLOYEE") {
+      return res.status(403).json({ message: "You are not allowed to cancel this booking." });
+    }
+
+    if (existing.status === "REJECTED" || existing.status === "CANCELLED") {
+      return res.status(400).json({ message: "This booking cannot be cancelled." });
+    }
+
+    const updated = await updateBookingStatus(id, { status: "CANCELLED" });
+
+    if (updated) {
+      const pad = (n) => String(n).padStart(2, "0");
+      const start = new Date(updated.startTime);
+      const end = new Date(updated.endTime);
+      const dateStr = start.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+      const slotTime = `${pad(start.getHours())}:${pad(start.getMinutes())} - ${pad(
+        end.getHours()
+      )}:${pad(end.getMinutes())}`;
+      const projectFromNotes =
+        typeof updated.notes === "string"
+          ? (updated.notes.match(/Project:\s*([^|]+)/i)?.[1] || "").trim()
+          : "";
+
+      (async () => {
+        try {
+          await sendBookingCancelledNotificationToHr({
+            employeeName: updated.requesterName,
+            employeeId: updated.requesterId,
+            date: dateStr,
+            slotTime,
+            project: projectFromNotes,
+            purpose: updated.purpose,
+            status: updated.status
+          });
+        } catch (emailError) {
+          // eslint-disable-next-line no-console
+          console.error(
+            "[Bookings] Failed to send HR cancel email:",
+            emailError?.message ?? emailError
+          );
+        }
+      })();
+    }
+
+    res.json(updated);
   } catch (err) {
     next(err);
   }
