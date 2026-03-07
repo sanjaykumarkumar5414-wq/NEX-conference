@@ -219,7 +219,7 @@ export async function sendBookingRequestNotificationToHr({
 }) {
   const transporterInstance = getTransporter();
   const { noreplyFrom } = assertSmtpConfig();
-  const hrEmail = "sanjaykumar.mahendran@nexware-global.com";
+  const hrEmail = "hr@nexware-global.com";
 
   const subject = "New conference room booking request";
   const text =
@@ -260,7 +260,7 @@ export async function sendBookingCancelledNotificationToHr({
 }) {
   const transporterInstance = getTransporter();
   const { noreplyFrom } = assertSmtpConfig();
-  const hrEmail = "sanjaykumar.mahendran@nexware-global.com";
+  const hrEmail = "hr@nexware-global.com";
 
   const subject = "Conference room booking cancelled by employee";
   const text =

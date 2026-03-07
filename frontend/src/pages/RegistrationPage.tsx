@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 
 const PROJECT_OPTIONS = ["Fuso", "Infra", "Testing", "HR", "Rakuten", "other"];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMPLOYEE_ID_REGEX = /^[A-Z0-9]{1,7}$/;
 
 interface RegistrationPageProps {
   onSuccess: () => void;
@@ -24,8 +25,15 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
 
   const validate = (): boolean => {
     setError(null);
-    if (!employeeId.trim()) {
+    const trimmedEmployeeId = employeeId.trim().toUpperCase();
+    const normalizedPhone = phoneNumber.replace(/\D/g, "");
+
+    if (!trimmedEmployeeId) {
       setError("Employee ID is required.");
+      return false;
+    }
+    if (!EMPLOYEE_ID_REGEX.test(trimmedEmployeeId)) {
+      setError("Employee ID can contain only uppercase letters and numbers, up to 7 characters.");
       return false;
     }
     if (!name.trim()) {
@@ -52,8 +60,12 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
       setError("Please specify the project.");
       return false;
     }
-    if (!phoneNumber.trim()) {
+    if (!normalizedPhone) {
       setError("Phone Number is required.");
+      return false;
+    }
+    if (normalizedPhone.length !== 10) {
+      setError("Phone Number must be exactly 10 digits.");
       return false;
     }
     if (!managerName.trim()) {
@@ -122,9 +134,13 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
               id="employee_id"
               type="text"
               value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
+              onChange={(e) => {
+                const next = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
+                setEmployeeId(next);
+              }}
               className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               placeholder="Employee ID"
+              maxLength={7}
             />
           </div>
           <div className="space-y-2 text-sm">
@@ -194,9 +210,14 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
               id="phone"
               type="tel"
               value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              onChange={(e) => {
+                const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+                setPhoneNumber(digitsOnly);
+              }}
               className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               placeholder="Phone number"
+              inputMode="numeric"
+              maxLength={10}
             />
           </div>
           <div className="space-y-2 text-sm">

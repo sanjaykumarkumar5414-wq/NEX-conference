@@ -36,6 +36,25 @@ export async function setOtp(email, { codeHash, expiresAt }) {
   }
 }
 
+export async function getLatestOtpCreatedAt(email) {
+  const connection = await pool.getConnection();
+  try {
+    const row = await queryOne(
+      connection,
+      `SELECT created_at
+       FROM otps
+       WHERE email = ?
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [email.toLowerCase()]
+    );
+    if (!row?.created_at) return null;
+    return new Date(row.created_at);
+  } finally {
+    connection.release();
+  }
+}
+
 /**
  * Get valid OTP for email
  */

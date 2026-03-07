@@ -3,6 +3,7 @@ export type SlotStatus = "FREE" | "PENDING" | "BOOKED" | "EMERGENCY" | "BLOCKED"
 export interface TimelineSlot {
   label: string;
   status: SlotStatus;
+  endLabel?: string;
 }
 
 function statusToClasses(status: string) {
@@ -46,7 +47,9 @@ export function EmployeeTimeline({ slots, dateLabel = "Today's schedule" }: Empl
               className="flex items-center gap-2"
             >
               <div className="w-10 shrink-0 text-[10px] text-slate-400 sm:w-12 sm:text-[11px]">
-                {slot.label}
+                {slot.endLabel && slot.status !== "FREE"
+                  ? `${slot.label} – ${slot.endLabel}`
+                  : slot.label}
               </div>
               <div className="relative flex-1">
                 <div className="h-6 rounded-full bg-slate-900/80 sm:h-7">

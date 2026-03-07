@@ -203,7 +203,7 @@ export function getSlotsForDate(
   dateStr: string,
   userId?: string,
   role?: string
-): { label: string; status: DayStatus }[] {
+): { label: string; status: DayStatus; endLabel?: string }[] {
   const forAvailability = bookingsForAvailability(bookings, userId, role);
   const onDay = forAvailability.filter((b) => bookingToDateStr(b.startTime) === dateStr);
   return HOURS.map((label) => {
@@ -219,7 +219,20 @@ export function getSlotsForDate(
       const e = slotEnd.getTime();
       return start < e && end > s;
     });
-    return { label, status: statusForBookings(overlapping) };
+    const status = statusForBookings(overlapping);
+
+    let endLabel: string | undefined;
+    if (status !== "FREE" && overlapping.length > 0) {
+      const latestEndMs = Math.max(
+        ...overlapping.map((b) => new Date(b.endTime).getTime())
+      );
+      const latestEnd = new Date(latestEndMs);
+      const hh = String(latestEnd.getHours()).padStart(2, "0");
+      const mm = String(latestEnd.getMinutes()).padStart(2, "0");
+      endLabel = `${hh}:${mm}`;
+    }
+
+    return { label, status, endLabel };
   });
 }
 

@@ -45,8 +45,10 @@ bookingRouter.post("/", authenticateJwt, async (req, res, next) => {
       });
     }
 
-    const startMs = new Date(startTime).getTime();
-    const endMs = new Date(endTime).getTime();
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+    const startMs = startDate.getTime();
+    const endMs = endDate.getTime();
     if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
       return res.status(400).json({
         message: "startTime must be before endTime and both must be valid datetimes."
@@ -57,18 +59,57 @@ bookingRouter.post("/", authenticateJwt, async (req, res, next) => {
     const isBlock = user.role === "ADMIN" && type === "BLOCK";
 
     if (user.role === "EMPLOYEE") {
-      // Prevent employees from booking over APPROVED bookings or manual blocks.
+      // Disallow booking past time slots for today.
+      const now = new Date();
+      const isSameCalendarDay = startDate.toDateString() === now.toDateString();
+      if (isSameCalendarDay && startDate <= now) {
+        return res.status(400).json({
+          message:
+            "You cannot book a time slot that has already passed. Please choose a future time."
+        });
+      }
+
+      // Enforce employee business hours: 09:00–17:00.
+      const startMinutes = startDate.getHours() * 60 + startDate.getMinutes();
+      const endMinutes = endDate.getHours() * 60 + endDate.getMinutes();
+      const BUSINESS_START = 9 * 60; // 09:00
+      const BUSINESS_END = 17 * 60; // 17:00
+      if (startMinutes < BUSINESS_START || endMinutes > BUSINESS_END) {
+        return res.status(400).json({
+          message: "Bookings are allowed only between 9 AM and 5 PM."
+        });
+      }
+
+      // First-come-first-serve: prevent employees from booking over another employee's
+      // pending or approved (including rescheduled) bookings, as well as HR blocks/emergencies.
       const existing = await getAllBookings();
-      const hasConflict = existing.some((b) => {
+      const requesterKey = String(req.user.dbUserId ?? req.user.id);
+
+      const overlapping = existing.filter((b) => {
         const bStart = new Date(b.startTime).getTime();
         const bEnd = new Date(b.endTime).getTime();
-        const overlaps = bStart < endMs && bEnd > startMs;
-        return (
-          overlaps &&
-          (b.status === "APPROVED" || b.type === "BLOCK")
-        );
+        return bStart < endMs && bEnd > startMs;
       });
-      if (hasConflict) {
+
+      const conflictsWithOtherEmployee = overlapping.some((b) => {
+        const isBlockingStatus =
+          b.status === "PENDING" || b.status === "APPROVED" || b.status === "RESCHEDULED";
+        const isDifferentEmployee = String(b.requesterId) !== requesterKey;
+        return isBlockingStatus && isDifferentEmployee;
+      });
+
+      if (conflictsWithOtherEmployee) {
+        return res.status(409).json({
+          message:
+            "This time slot is already in pending status or booked by another employee. Please choose a different time."
+        });
+      }
+
+      const hasHrBlockOrEmergency = overlapping.some(
+        (b) => b.type === "BLOCK" || b.type === "EMERGENCY"
+      );
+
+      if (hasHrBlockOrEmergency) {
         return res.status(409).json({
           message: "This time range is blocked by HR or already booked."
         });

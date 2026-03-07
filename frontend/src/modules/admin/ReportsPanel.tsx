@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 
-type ReportType = "weekly" | "monthly" | "yearly";
+type ReportType = "weekly" | "monthly" | "yearly" | "date-wise";
 
 interface ReportsPanelProps {}
 
@@ -21,6 +21,8 @@ export function ReportsPanel(_props: ReportsPanelProps) {
   const { token } = useAuth();
   const [reportType, setReportType] = useState<ReportType>("weekly");
   const [weekDate, setWeekDate] = useState(todayDateStr);
+  const [startDate, setStartDate] = useState(todayDateStr);
+  const [endDate, setEndDate] = useState(todayDateStr);
   const [monthValue, setMonthValue] = useState(currentMonthStr);
   const [yearValue, setYearValue] = useState(() => new Date().getFullYear());
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,19 @@ export function ReportsPanel(_props: ReportsPanelProps) {
     params.set("type", reportType);
     params.set("format", format);
 
-    if (reportType === "weekly") {
+    if (reportType === "date-wise") {
+      if (!startDate || !endDate) {
+        setError("Please select both Start Date and End Date.");
+        return;
+      }
+      if (startDate > endDate) {
+        setError("Start Date must be on or before End Date.");
+        return;
+      }
+      params.set("type", "date-wise");
+      params.set("startDate", startDate);
+      params.set("endDate", endDate);
+    } else if (reportType === "weekly") {
       if (!weekDate) {
         setError("Please select a week date.");
         return;
@@ -65,11 +79,13 @@ export function ReportsPanel(_props: ReportsPanelProps) {
     }
 
     const fileLabel =
-      reportType === "weekly"
-        ? weekDate
-        : reportType === "monthly"
-          ? monthValue
-          : String(yearValue);
+      reportType === "date-wise"
+        ? `${startDate}_to_${endDate}`
+        : reportType === "weekly"
+          ? weekDate
+          : reportType === "monthly"
+            ? monthValue
+            : String(yearValue);
 
     setDownloading(format);
     try {
@@ -103,12 +119,12 @@ export function ReportsPanel(_props: ReportsPanelProps) {
   };
 
   return (
-    <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3 text-[11px]">
+    <section className="space-y-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(15,23,42,0.55)] px-4 py-3 text-[11px]">
       <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">Reports</h2>
           <p className="text-xs text-slate-400">
-            Export booking activity for a selected week, month, or year.
+            Export booking activity for a selected date, week, month, or year.
           </p>
         </div>
       </div>
@@ -124,6 +140,7 @@ export function ReportsPanel(_props: ReportsPanelProps) {
             onChange={(e) => setReportType(e.target.value as ReportType)}
             className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-50 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           >
+            <option value="date-wise">Date-wise</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
             <option value="yearly">Yearly</option>
@@ -132,12 +149,36 @@ export function ReportsPanel(_props: ReportsPanelProps) {
 
         <div className="space-y-1">
           <label className="block text-slate-200">
-            {reportType === "weekly"
-              ? "Week (pick any day)"
-              : reportType === "monthly"
-                ? "Month"
-                : "Year"}
+            {reportType === "date-wise"
+              ? "Date range"
+              : reportType === "weekly"
+                ? "Week (pick any day)"
+                : reportType === "monthly"
+                  ? "Month"
+                  : "Year"}
           </label>
+          {reportType === "date-wise" && (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-slate-400">Start Date</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-50 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-slate-400">End Date</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-50 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                />
+              </div>
+            </div>
+          )}
           {reportType === "weekly" && (
             <input
               type="date"

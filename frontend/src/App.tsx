@@ -50,7 +50,7 @@ export default function App() {
   const isPublicView = view === "landing" || view === "login" || view === "register";
 
   return (
-    <div ref={appRef} className="min-h-screen bg-slate-950 text-slate-50">
+    <div ref={appRef} className="min-h-screen">
       <ShellLayout
         showHeader={view !== "landing"}
         onLogoClick={isPublicView ? handleGoToLanding : undefined}

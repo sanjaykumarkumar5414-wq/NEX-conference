@@ -84,7 +84,7 @@ export function AdminDashboardPage() {
           </header>
 
           <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3 text-[11px] md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(15,23,42,0.55)] px-4 py-3 text-[11px] md:flex-row md:items-center md:justify-between">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-slate-300">Filter by status</span>
                 <div className="flex flex-wrap gap-1.5">

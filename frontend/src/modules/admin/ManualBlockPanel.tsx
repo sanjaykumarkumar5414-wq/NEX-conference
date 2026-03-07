@@ -41,15 +41,17 @@ export function ManualBlockPanel({ token, onCreated }: ManualBlockPanelProps) {
       setError("End time must be after start time.");
       return;
     }
+
+    const startDateTime = `${startDate}T${startTime}`;
+    const endDateTime = `${endDate}T${endTime}`;
+
     setSubmitting(true);
     try {
       await createBooking(token, {
         title: reason || "Manual block",
         purpose: notes || reason || "Manual block",
-        startDate,
-        endDate,
-        blockStartTime: start,
-        blockEndTime: end,
+        startTime: startDateTime,
+        endTime: endDateTime,
         type: "BLOCK"
       } as any);
       onCreated?.();
@@ -61,7 +63,7 @@ export function ManualBlockPanel({ token, onCreated }: ManualBlockPanelProps) {
   };
 
   return (
-    <section className="max-w-full overflow-hidden space-y-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-xs">
+    <section className="max-w-full overflow-hidden space-y-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(15,23,42,0.55)] p-4 text-xs">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">

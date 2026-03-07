@@ -230,7 +230,7 @@ interface LegendPillProps {
 
 function LegendPill({ color, label }: LegendPillProps) {
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-800/80 bg-slate-950/70 px-2.5 py-1">
+    <div className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(15,23,42,0.55)] px-2.5 py-1">
       <span className={`h-2 w-4 rounded-full ${color}`} />
       <span className="text-[11px] text-slate-200">{label}</span>
     </div>

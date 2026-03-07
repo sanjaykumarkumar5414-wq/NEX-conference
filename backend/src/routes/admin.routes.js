@@ -265,6 +265,23 @@ function computePeriodFromQuery(query) {
   const type = String(query.type || "").toLowerCase();
   const today = new Date();
 
+  if (type === "date-wise") {
+    const startDateStr = query.startDate ? String(query.startDate).trim() : null;
+    const endDateStr = query.endDate ? String(query.endDate).trim() : null;
+    const baseStart = startDateStr ? new Date(startDateStr) : today;
+    const baseEnd = endDateStr ? new Date(endDateStr) : today;
+    const start = new Date(baseStart);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(baseEnd);
+    end.setDate(end.getDate() + 1);
+    end.setHours(0, 0, 0, 0);
+    const label =
+      startDateStr && endDateStr
+        ? `${startDateStr}_to_${endDateStr}`
+        : start.toISOString().slice(0, 10);
+    return { start, end, label };
+  }
+
   if (type === "weekly") {
     const base = query.date ? new Date(String(query.date)) : today;
     const dow = base.getDay(); // 0 = Sun

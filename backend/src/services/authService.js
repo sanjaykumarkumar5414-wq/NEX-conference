@@ -4,6 +4,7 @@ import {
   setOtp,
   getValidOtp,
   markOtpConsumed,
+  getLatestOtpCreatedAt,
   createOrGetEmployee,
   createOrGetAdmin
 } from "../stores/memoryAuthStore.js";
@@ -19,6 +20,7 @@ import { sendOtpEmail } from "./emailService.js";
 const ADMIN_EMAIL = "hr@nexware-global.com";
 const ADMIN_PASSWORD = "Hr@123";
 const OTP_TTL_MINUTES = 5;
+const OTP_REQUEST_COOLDOWN_MS = 60 * 1000;
 
 function signJwt(payload) {
   const secret = process.env.JWT_SECRET;
@@ -207,6 +209,17 @@ export async function requestEmployeeOtp({ email }) {
     error.status = 403;
     error.code = "AccountBlocked";
     throw error;
+  }
+
+  const lastRequestedAt = await getLatestOtpCreatedAt(lower);
+  if (lastRequestedAt) {
+    const elapsed = Date.now() - lastRequestedAt.getTime();
+    if (elapsed >= 0 && elapsed < OTP_REQUEST_COOLDOWN_MS) {
+      const error = new Error("Please wait before requesting another OTP.");
+      error.status = 429;
+      error.code = "OtpRateLimited";
+      throw error;
+    }
   }
 
   const code = String(Math.floor(100000 + Math.random() * 900000));

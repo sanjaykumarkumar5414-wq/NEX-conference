@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 
 type Role = "EMPLOYEE" | "ADMIN";
 
 const NOT_REGISTERED_MESSAGE = "You are not registered. Please register first.";
+const OTP_COOLDOWN_SECONDS = 60;
 
 interface LoginFormProps {
   onGoToRegister?: () => void;
@@ -16,6 +17,9 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState<{ email: string; endsAt: number } | null>(null);
+  const [otpCooldownRemaining, setOtpCooldownRemaining] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,6 +29,36 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
 
   const isFormEmailValid = isCompanyEmail;
 
+  const isCooldownActive = useMemo(() => {
+    return Boolean(
+      otpCooldown &&
+        otpCooldown.email === trimmedEmail &&
+        otpCooldownRemaining > 0
+    );
+  }, [otpCooldown, otpCooldownRemaining, trimmedEmail]);
+
+  useEffect(() => {
+    if (!otpCooldown) {
+      setOtpCooldownRemaining(0);
+      return;
+    }
+
+    const tick = () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((otpCooldown.endsAt - Date.now()) / 1000)
+      );
+      setOtpCooldownRemaining(remaining);
+      if (remaining <= 0) {
+        setOtpCooldown(null);
+      }
+    };
+
+    tick();
+    const id = window.setInterval(tick, 250);
+    return () => window.clearInterval(id);
+  }, [otpCooldown]);
+
   const resetMessages = () => {
     setMessage(null);
     setError(null);
@@ -33,10 +67,17 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
   const handleRoleChange = (nextRole: Role) => {
     if (nextRole === role) return;
     setRole(nextRole);
+    if (nextRole === "ADMIN") {
+      setEmail("hr@nexware-global.com");
+    } else {
+      setEmail("");
+    }
     resetMessages();
     setPassword("");
     setOtp("");
     setOtpSent(false);
+    setSendingOtp(false);
+    setOtpCooldown(null);
   };
 
   const validateCommon = () => {
@@ -100,6 +141,18 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
         }
       })();
     } else {
+      // Enforce employee login only during office hours: 09:00–17:00.
+      const now = new Date();
+      const minutes = now.getHours() * 60 + now.getMinutes();
+      const START_MINUTES = 9 * 60; // 09:00
+      const END_MINUTES = 17 * 60; // 17:00
+      if (minutes < START_MINUTES || minutes >= END_MINUTES) {
+        setError(
+          "Employee login is allowed only during office hours (09:00 AM – 05:00 PM). Please try again during business hours."
+        );
+        return;
+      }
+
       if (!otpSent) {
         setError("Please send an OTP to your company email first.");
         return;
@@ -148,10 +201,17 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
     resetMessages();
     if (!validateCommon()) return;
 
+    if (isCooldownActive) {
+      setError("Please wait before requesting another OTP.");
+      return;
+    }
+    if (sendingOtp) return;
+
     const baseUrl =
       (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
 
     void (async () => {
+      setSendingOtp(true);
       try {
         const res = await fetch(`${baseUrl}/auth/employee/request-otp`, {
           method: "POST",
@@ -172,8 +232,14 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
 
         setOtpSent(true);
         setMessage("OTP sent to your company email.");
+        setOtpCooldown({
+          email: trimmedEmail,
+          endsAt: Date.now() + OTP_COOLDOWN_SECONDS * 1000
+        });
       } catch {
         setError("Network error while requesting an OTP.");
+      } finally {
+        setSendingOtp(false);
       }
     })();
   };
@@ -221,6 +287,7 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={role === "ADMIN"}
             className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             placeholder="Enter your work email"
           />
@@ -259,10 +326,14 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
               <button
                 type="button"
                 onClick={handleSendOtp}
-                disabled={!isFormEmailValid}
+                disabled={!isFormEmailValid || sendingOtp || isCooldownActive}
                 className="shrink-0 rounded-lg border border-brand/60 bg-brand/10 px-3 py-2 text-xs font-medium text-brand hover:bg-brand/20 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
               >
-                Send OTP
+                {sendingOtp
+                  ? "Sending…"
+                  : isCooldownActive
+                    ? `Resend OTP in ${otpCooldownRemaining}s`
+                    : "Send OTP"}
               </button>
             </div>
             {!otpSent && (

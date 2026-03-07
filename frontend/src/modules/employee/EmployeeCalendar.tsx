@@ -85,7 +85,7 @@ export function EmployeeCalendar({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3 text-xs sm:p-4">
+      <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(15,23,42,0.55)] p-3 text-xs sm:p-4">
         <div className="grid grid-cols-7 gap-1.5 text-[10px] text-slate-400 sm:gap-2 sm:text-[11px]">
           {WEEKDAYS.map((day) => (
             <div key={day} className="text-center font-medium">

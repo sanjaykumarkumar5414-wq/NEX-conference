@@ -1,38 +1,57 @@
 import type { Booking } from "../../api/bookings";
 
-const DAY_START_MINUTES = 9 * 60; // 09:00
-const DAY_END_MINUTES = 17 * 60; // 17:00
+// Use the same working hours window as the booking rules: 07:00–17:30.
+const DAY_START_MINUTES = 7 * 60; // 07:00
+const DAY_END_MINUTES = 17 * 60 + 30; // 17:30
 
 function todayDateStr(): string {
   const t = new Date();
   return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
 }
 
-function bookingsToSlotsForDate(bookings: Booking[], dateStr: string): { startMinutes: number; endMinutes: number }[] {
-  const dayStart = new Date(`${dateStr}T00:00:00`).getTime();
+function bookingsToSlotsForDate(
+  bookings: Booking[],
+  dateStr: string
+): { startMinutes: number; endMinutes: number }[] {
+  const dayStartMs = new Date(`${dateStr}T00:00:00`).getTime();
+
   return bookings
     .filter(
       (b) =>
         b.startTime.startsWith(dateStr) &&
-        (b.status === "APPROVED" || b.status === "RESCHEDULED")
+        (b.status === "APPROVED" || b.status === "RESCHEDULED" || b.status === "PENDING")
     )
     .map((b) => {
-      const start = new Date(b.startTime).getTime();
-      const end = new Date(b.endTime).getTime();
+      const startMs = new Date(b.startTime).getTime();
+      const endMs = new Date(b.endTime).getTime();
+      const startAbsMinutes = Math.floor((startMs - dayStartMs) / 60000);
+      const endAbsMinutes = Math.floor((endMs - dayStartMs) / 60000);
+
+      const busyStart = Math.max(startAbsMinutes, DAY_START_MINUTES);
+      const busyEnd = Math.min(endAbsMinutes, DAY_END_MINUTES);
+
       return {
-        startMinutes: Math.floor((start - dayStart) / 60000) - 9 * 60,
-        endMinutes: Math.floor((end - dayStart) / 60000) - 9 * 60
+        startMinutes: busyStart - DAY_START_MINUTES,
+        endMinutes: busyEnd - DAY_START_MINUTES
       };
     })
-    .filter((s) => s.endMinutes > DAY_START_MINUTES - 9 * 60 && s.startMinutes < DAY_END_MINUTES - 9 * 60);
+    .filter((s) => s.endMinutes > s.startMinutes);
 }
 
-function findNextFreeOneHourSlot(slots: { startMinutes: number; endMinutes: number }[]): { startMinutes: number; endMinutes: number } | null {
-  const start = 0;
-  const end = DAY_END_MINUTES - DAY_START_MINUTES;
+function findNextFreeOneHourSlot(
+  slots: { startMinutes: number; endMinutes: number }[],
+  minStartMinutesFromDayStart: number
+): { startMinutes: number; endMinutes: number } | null {
+  const daySpanMinutes = DAY_END_MINUTES - DAY_START_MINUTES;
+  const start = Math.min(Math.max(0, minStartMinutesFromDayStart), daySpanMinutes);
+  const end = daySpanMinutes;
   const sorted = [...slots].sort((a, b) => a.startMinutes - b.startMinutes);
   let cursor = start;
   for (const slot of sorted) {
+    if (slot.endMinutes <= cursor) {
+      // This busy slot is entirely in the past relative to cursor; skip.
+      continue;
+    }
     if (slot.startMinutes - cursor >= 60) {
       return { startMinutes: cursor, endMinutes: cursor + 60 };
     }
@@ -83,11 +102,17 @@ interface SmartSuggestionsPanelProps {
 export function SmartSuggestionsPanel({ bookings }: SmartSuggestionsPanelProps) {
   const today = todayDateStr();
   const slotsToday = bookingsToSlotsForDate(bookings, today);
-  const slot = findNextFreeOneHourSlot(slotsToday);
+  const now = new Date();
+  const nowAbsMinutes = now.getHours() * 60 + now.getMinutes();
+  const minStartMinutesFromDayStart = Math.max(
+    0,
+    nowAbsMinutes - DAY_START_MINUTES
+  );
+  const slot = findNextFreeOneHourSlot(slotsToday, minStartMinutesFromDayStart);
   const leastBusy = getLeastBusyDay(bookings);
 
   return (
-    <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-xs">
+    <section className="space-y-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(15,23,42,0.55)] p-4 text-xs">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">
@@ -107,7 +132,7 @@ export function SmartSuggestionsPanel({ bookings }: SmartSuggestionsPanelProps) 
           <p className="mt-1 text-[11px] text-slate-300">
             {slot
               ? `${formatTime(slot.startMinutes)}–${formatTime(slot.endMinutes)}`
-              : "No 1‑hour slot available today within 09:00–17:00."}
+              : "No 1‑hour slot available today within 07:00–17:30."}
           </p>
         </div>
 

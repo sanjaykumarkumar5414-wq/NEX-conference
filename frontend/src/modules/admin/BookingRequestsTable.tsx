@@ -65,7 +65,7 @@ export function BookingRequestsTable({
       : rows.filter((row) => row.status === selectedStatus);
 
   return (
-    <section className="flex flex-1 flex-col space-y-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-xs">
+    <section className="flex flex-1 flex-col space-y-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(15,23,42,0.55)] p-4 text-xs">
       <div className="flex items-baseline justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">

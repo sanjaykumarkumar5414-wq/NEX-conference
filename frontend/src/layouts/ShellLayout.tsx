@@ -18,7 +18,7 @@ export function ShellLayout({
   return (
     <div className="flex min-h-screen flex-col">
       {showHeader && (
-        <header className="border-b border-slate-800 bg-slate-950/60 backdrop-blur">
+        <header className="border-b border-slate-800 bg-transparent backdrop-blur">
           <div className="flex w-full flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <img

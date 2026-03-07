@@ -13,13 +13,33 @@ interface BookingRequestModalProps {
   userId: string | null | undefined;
 }
 
-const PROJECT_OPTIONS = ["Fuso", "Infra", "Testing", "HR", "Rakuten", "other"];
+const PROJECT_OPTIONS = [
+  "FUSO",
+  "HR",
+  "NEXGEN - Recruitment",
+  "NEXWARE - Recruitment",
+  "INFRA",
+  "RAKUTEN",
+  "New Hotel otanin",
+  "Ticketing Tool",
+  "Coffee bean AI",
+  "Management",
+  "Finance",
+  "TAG",
+  "HANBROS-AMO",
+  "TAG-JR TOWER",
+  "Koko Grocery",
+  "KAKEHASHI",
+  "FUDOSAN CALENDAR",
+  "ITOKYO",
+  "others"
+];
 
 const PURPOSE_GROUPS: { label: string; options: string[] }[] = [
-  { label: "Client Related", options: ["Client Interview", "Client Discussion", "Client Meeting", "Client Presentation"] },
-  { label: "Internal", options: ["Internal Meeting", "Team Sync", "Workshop"] },
-  { label: "Executive", options: ["CEO Meeting", "Board Meeting"] },
-  { label: "General", options: ["Interview", "Others"] }
+  { label: "Client Related", options: ["Client meeting"] },
+  { label: "Internal", options: ["Team meeting", "Workshop", "Training"] },
+  { label: "Executive", options: ["Board Meeting"] },
+  { label: "General", options: ["Event meeting", "HR Team Interview", "Others"] }
 ];
 
 function todayDateStr(): string {
@@ -59,7 +79,7 @@ export function BookingRequestModal({
   if (!open) return null;
 
   const isOthers = selectedPurpose === "Others";
-  const isProjectOther = project === "other";
+  const isProjectOther = project === "others";
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -79,6 +99,29 @@ export function BookingRequestModal({
     const endTime = `${dateValue}T${endTimeValue}:00`;
     if (new Date(endTime) <= new Date(startTime)) {
       setSubmitError("End time must be after start time.");
+      return;
+    }
+
+    // If booking for today, prevent selecting a start time in the past.
+    if (dateValue === todayDateStr()) {
+      const now = new Date();
+      if (new Date(startTime) <= now) {
+        setSubmitError(
+          "You cannot book a time slot that has already passed. Please choose a future time."
+        );
+        return;
+      }
+    }
+
+    // Enforce employee booking within allowed hours (07:00–17:30).
+    const [startHour, startMinute] = startTimeValue.split(":").map((v) => Number(v) || 0);
+    const [endHour, endMinute] = endTimeValue.split(":").map((v) => Number(v) || 0);
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+    const ALLOWED_START = 7 * 60; // 07:00
+    const ALLOWED_END = 17 * 60 + 30; // 17:30
+    if (startMinutes < ALLOWED_START || endMinutes > ALLOWED_END) {
+      setSubmitError("Bookings are allowed only between 7 AM and 5:30 PM.");
       return;
     }
 
@@ -212,8 +255,8 @@ export function BookingRequestModal({
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 px-3 py-4 sm:px-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-4 shadow-2xl shadow-black/50 sm:p-5">
+    <div className="fixed inset-0 z-40 flex items-start justify-center bg-slate-950/60 px-3 pt-6 pb-6 sm:px-4 sm:pt-8 sm:pb-8 backdrop-blur-sm overflow-y-auto">
+      <div className="w-full max-w-md max-h-[calc(100vh-4rem)] rounded-2xl border border-slate-800 bg-slate-950 p-4 shadow-2xl shadow-black/50 sm:p-5 overflow-y-auto">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-sm font-semibold text-slate-100">
@@ -261,6 +304,8 @@ export function BookingRequestModal({
                 <input
                   ref={timeStartRef}
                   type="time"
+                  min="07:00"
+                  max="17:30"
                   className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                 />
                 <span className="text-[10px] text-slate-500 text-center">
@@ -269,6 +314,8 @@ export function BookingRequestModal({
                 <input
                   ref={timeEndRef}
                   type="time"
+                  min="07:00"
+                  max="17:30"
                   className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                 />
               </div>
