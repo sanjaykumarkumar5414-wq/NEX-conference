@@ -76,3 +76,18 @@ export async function setBlocked(
   }
 }
 
+export async function deleteEmployee(
+  token: string,
+  employeeId: string
+): Promise<void> {
+  const res = await fetch(`${getBaseUrl()}/admin/employees/${employeeId}`, {
+    method: "DELETE",
+    headers: authHeaders(token)
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) triggerUnauthorized();
+    throw new Error((data as { message?: string }).message ?? "Failed to delete employee.");
+  }
+}
+

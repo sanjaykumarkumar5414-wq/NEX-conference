@@ -75,6 +75,21 @@ export async function listEmployeesWithBookingCount(search) {
 }
 
 /**
+ * Permanently delete an employee by id
+ */
+export async function deleteEmployee(id) {
+  const connection = await pool.getConnection();
+  try {
+    const [result] = await connection.query("DELETE FROM employees WHERE id = ?", [
+      Number(id)
+    ]);
+    return result.affectedRows > 0;
+  } finally {
+    connection.release();
+  }
+}
+
+/**
  * Set employee is_blocked flag
  */
 export async function setEmployeeBlocked(id, isBlocked) {

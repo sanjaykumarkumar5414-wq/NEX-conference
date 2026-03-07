@@ -9,7 +9,8 @@ import { getAllBookings } from "../stores/bookingStore.js";
 import {
   listEmployeesWithBookingCount,
   getEmployeeById,
-  setEmployeeBlocked
+  setEmployeeBlocked,
+  deleteEmployee
 } from "../stores/employeeStore.js";
 import { sendWarningEmail } from "../services/emailService.js";
 
@@ -255,6 +256,29 @@ adminRouter.post(
       }
       await setEmployeeBlocked(id, false);
       res.json({ message: "User unblocked." });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// DELETE /api/admin/employees/:id — permanently delete employee
+adminRouter.delete(
+  "/employees/:id",
+  authenticateJwt,
+  requireHrAdmin,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const employee = await getEmployeeById(id);
+      if (!employee) {
+        const err = new Error("Employee not found.");
+        err.status = 404;
+        err.code = "NotFound";
+        throw err;
+      }
+      await deleteEmployee(id);
+      res.json({ message: "Employee deleted." });
     } catch (err) {
       next(err);
     }
