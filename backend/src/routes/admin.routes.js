@@ -285,6 +285,29 @@ adminRouter.post(
   }
 );
 
+// POST /api/admin/employees/:id/delete — permanently delete employee (POST for production proxy compatibility)
+adminRouter.post(
+  "/employees/:id/delete",
+  authenticateJwt,
+  requireHrAdmin,
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const employee = await getEmployeeById(id);
+      if (!employee) {
+        const err = new Error("Employee not found.");
+        err.status = 404;
+        err.code = "NotFound";
+        throw err;
+      }
+      await deleteEmployee(id);
+      res.json({ success: true, message: "Employee deleted successfully" });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 function computePeriodFromQuery(query) {
   const type = String(query.type || "").toLowerCase();
   const today = new Date();
