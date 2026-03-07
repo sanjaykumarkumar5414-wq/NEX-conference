@@ -80,7 +80,9 @@ export async function deleteEmployee(
   token: string,
   employeeId: string
 ): Promise<void> {
-  const res = await fetch(`${getBaseUrl()}/admin/employees/${employeeId}`, {
+  const base = getBaseUrl();
+  const url = base.endsWith("/") ? `${base}admin/employees/${employeeId}` : `${base}/admin/employees/${employeeId}`;
+  const res = await fetch(url, {
     method: "DELETE",
     headers: authHeaders(token)
   });

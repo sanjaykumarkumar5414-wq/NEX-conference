@@ -191,6 +191,29 @@ adminRouter.get(
   }
 );
 
+// DELETE /api/admin/employees/:id — permanently delete employee (must be before /employees/:id/* routes)
+adminRouter.delete(
+  "/employees/:id",
+  authenticateJwt,
+  requireHrAdmin,
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const employee = await getEmployeeById(id);
+      if (!employee) {
+        const err = new Error("Employee not found.");
+        err.status = 404;
+        err.code = "NotFound";
+        throw err;
+      }
+      await deleteEmployee(id);
+      res.json({ success: true, message: "Employee deleted successfully" });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 // POST /api/admin/employees/:id/warn — send warning email to employee
 adminRouter.post(
   "/employees/:id/warn",
@@ -256,29 +279,6 @@ adminRouter.post(
       }
       await setEmployeeBlocked(id, false);
       res.json({ message: "User unblocked." });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-// DELETE /api/admin/employees/:id — permanently delete employee
-adminRouter.delete(
-  "/employees/:id",
-  authenticateJwt,
-  requireHrAdmin,
-  async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const employee = await getEmployeeById(id);
-      if (!employee) {
-        const err = new Error("Employee not found.");
-        err.status = 404;
-        err.code = "NotFound";
-        throw err;
-      }
-      await deleteEmployee(id);
-      res.json({ message: "Employee deleted." });
     } catch (err) {
       next(err);
     }
