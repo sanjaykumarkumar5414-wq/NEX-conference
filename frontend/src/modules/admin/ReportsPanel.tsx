@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { getBaseUrl } from "../../api/config";
 
 type ReportType = "weekly" | "monthly" | "yearly" | "date-wise";
 
@@ -89,7 +90,7 @@ export function ReportsPanel(_props: ReportsPanelProps) {
 
     setDownloading(format);
     try {
-      const res = await fetch(`/api/admin/reports?${params.toString()}`, {
+      const res = await fetch(`${getBaseUrl()}/admin/reports?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

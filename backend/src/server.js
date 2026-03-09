@@ -24,7 +24,7 @@ import { createApp } from "./app.js";
 import { verifySmtpTransport } from "./services/emailService.js";
 import { createTablesIfNotExists } from "./db/migrations.js";
 
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = Number(process.env.PORT) || 5225;
 
 const app = createApp();
 

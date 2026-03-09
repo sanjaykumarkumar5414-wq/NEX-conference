@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { getBaseUrl } from "../../api/config";
 
 type Role = "EMPLOYEE" | "ADMIN";
 
@@ -108,8 +109,7 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
         return;
       }
 
-      const baseUrl =
-        (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
+      const baseUrl = getBaseUrl();
 
       void (async () => {
         try {
@@ -162,8 +162,7 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
         return;
       }
 
-      const baseUrl =
-        (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
+      const baseUrl = getBaseUrl();
 
       void (async () => {
         try {
@@ -207,8 +206,7 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
     }
     if (sendingOtp) return;
 
-    const baseUrl =
-      (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
+    const baseUrl = getBaseUrl();
 
     void (async () => {
       setSendingOtp(true);

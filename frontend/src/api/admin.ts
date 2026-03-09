@@ -1,8 +1,5 @@
 import { triggerUnauthorized } from "./authCallback";
-
-const getBaseUrl = () =>
-  (import.meta as ImportMeta & { env: ImportMetaEnv & { VITE_API_BASE_URL?: string } }).env
-    .VITE_API_BASE_URL ?? "/api";
+import { getBaseUrl } from "./config";
 
 function authHeaders(token: string) {
   return {

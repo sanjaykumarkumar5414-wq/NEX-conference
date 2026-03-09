@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { getBaseUrl } from "../api/config";
 
 const PROJECT_OPTIONS = ["Fuso", "Infra", "Testing", "HR", "Rakuten", "other"];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -82,8 +83,7 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
     setSubmitting(true);
     setError(null);
 
-    const baseUrl =
-      (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:4000/api";
+    const baseUrl = getBaseUrl();
 
     fetch(`${baseUrl}/auth/register`, {
       method: "POST",
