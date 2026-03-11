@@ -1,7 +1,25 @@
 import { useState, type FormEvent } from "react";
 import { getBaseUrl } from "../api/config";
 
-const PROJECT_OPTIONS = ["Fuso", "Infra", "Testing", "HR", "Rakuten", "other"];
+const PROJECT_OPTIONS = [
+  "FUSO",
+  "HR",
+  "NEXGEN – Recruitment",
+  "NEXWARE – Recruitment",
+  "INFRA",
+  "RAKUTEN",
+  "New Hotel otanin",
+  "Ticketing Tool",
+  "Coffee Bean AI Management",
+  "Finance",
+  "TAG",
+  "HANBROS – AMO",
+  "TAG – JR TOWER",
+  "Koko Grocery",
+  "KAKEHASHI",
+  "FUDOSAN",
+  "Other"
+];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPLOYEE_ID_REGEX = /^[A-Z0-9]{1,7}$/;
 
@@ -21,7 +39,7 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const isProjectOther = project === "other";
+  const isProjectOther = project === "Other";
   const projectValue = isProjectOther ? specifyProject.trim() : project;
 
   const validate = (): boolean => {
