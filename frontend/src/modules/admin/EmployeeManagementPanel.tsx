@@ -84,7 +84,10 @@ export function EmployeeManagementPanel() {
   };
 
   return (
-    <section className="space-y-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(15,23,42,0.55)] px-4 py-3 text-[11px]">
+    <section
+      id="employee-management"
+      className="scroll-mt-4 space-y-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(15,23,42,0.55)] px-4 py-3 text-[11px]"
+    >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">Employee Management</h2>

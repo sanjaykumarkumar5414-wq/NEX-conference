@@ -41,6 +41,14 @@ export function ShellLayout({
             <div className="flex w-full items-center justify-between gap-2 text-[11px] sm:w-auto sm:justify-end sm:gap-3 sm:text-xs">
               {user ? (
                 <>
+                  {user.role === "ADMIN" && (
+                    <a
+                      href="#employee-management"
+                      className="shrink-0 rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 text-[11px] text-slate-200 transition hover:border-slate-500 hover:bg-slate-800 sm:text-xs"
+                    >
+                      Employee Management
+                    </a>
+                  )}
                   <span className="max-w-full flex-1 truncate rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-slate-200 sm:flex-initial">
                     <span className="font-medium">{user.email}</span>
                     <span className="ml-2 hidden text-slate-400 sm:inline">

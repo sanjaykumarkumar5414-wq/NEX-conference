@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { updateBookingStatus, rescheduleBooking } from "../../api/bookings";
 import type { Booking } from "../../api/bookings";
 
@@ -81,6 +82,12 @@ export function BookingActionModal({
     setSubmitError(null);
     setTimeSlotError(false);
   }, [open, booking]);
+
+  useEffect(() => {
+    if (open) {
+      window.scrollTo(0, 0);
+    }
+  }, [open]);
 
   if (!open || !bookingId) return null;
 
@@ -204,7 +211,7 @@ export function BookingActionModal({
     ? `rounded-lg border-2 border-red-500/80 bg-red-500/10 px-2 py-1.5 text-[11px] text-slate-50 ${inputTransition}`
     : `rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-[11px] text-slate-50 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand ${inputTransition}`;
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-5 text-xs shadow-2xl shadow-black/60">
         <div className="flex items-center justify-between gap-4">
@@ -432,4 +439,6 @@ export function BookingActionModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
