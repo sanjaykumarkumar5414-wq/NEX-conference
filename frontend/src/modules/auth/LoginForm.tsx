@@ -25,8 +25,10 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null);
 
   const trimmedEmail = email.trim().toLowerCase();
+  const ALLOWED_DOMAINS = ["@nexware-global.com", "@nexgen-global.com"];
   const isCompanyEmail =
-    trimmedEmail.length > 0 && trimmedEmail.endsWith("@nexware-global.com");
+    trimmedEmail.length > 0 &&
+    ALLOWED_DOMAINS.some((d) => trimmedEmail.endsWith(d));
 
   const isFormEmailValid = isCompanyEmail;
 
@@ -89,8 +91,8 @@ export function LoginForm({ onGoToRegister }: LoginFormProps) {
     if (!isCompanyEmail) {
       const isGmail = trimmedEmail.endsWith("@gmail.com");
       const friendlyDomainMessage = isGmail
-        ? "Gmail addresses are not allowed. Please use your nexware-global.com work email."
-        : "Only nexware-global.com work email addresses are allowed.";
+        ? "Gmail addresses are not allowed. Please use your company work email (nexware-global.com or nexgen-global.com)."
+        : "Only nexware-global.com and nexgen-global.com work email addresses are allowed.";
       setError(friendlyDomainMessage);
       return false;
     }

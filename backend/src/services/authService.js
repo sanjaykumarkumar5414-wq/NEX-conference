@@ -112,9 +112,11 @@ export async function registerEmployee({
     err.code = "ValidationError";
     throw err;
   }
-  if (!em.toLowerCase().endsWith("@nexware-global.com")) {
+  const allowedDomains = ["@nexware-global.com", "@nexgen-global.com"];
+  const emLower = em.toLowerCase();
+  if (!allowedDomains.some((d) => emLower.endsWith(d))) {
     const err = new Error(
-      "Only nexware-global.com email addresses are allowed for registration."
+      "Only nexware-global.com and nexgen-global.com email addresses are allowed for registration."
     );
     err.status = 400;
     err.code = "ValidationError";
@@ -179,9 +181,10 @@ export async function requestEmployeeOtp({ email }) {
 
   const lower = email.toLowerCase();
 
-  if (!lower.endsWith("@nexware-global.com")) {
+  const allowedDomains = ["@nexware-global.com", "@nexgen-global.com"];
+  if (!allowedDomains.some((d) => lower.endsWith(d))) {
     const error = new Error(
-      "Only nexware-global.com email addresses are allowed for employee login."
+      "Only nexware-global.com and nexgen-global.com email addresses are allowed for employee login."
     );
     error.status = 403;
     error.code = "InvalidDomain";

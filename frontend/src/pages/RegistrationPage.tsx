@@ -22,6 +22,9 @@ const PROJECT_OPTIONS = [
 ];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPLOYEE_ID_REGEX = /^[A-Z0-9]{1,7}$/;
+const ALLOWED_EMAIL_DOMAINS = ["@nexware-global.com", "@nexgen-global.com"];
+const isAllowedEmailDomain = (email: string) =>
+  ALLOWED_EMAIL_DOMAINS.some((d) => email.toLowerCase().endsWith(d));
 
 interface RegistrationPageProps {
   onSuccess: () => void;
@@ -67,8 +70,8 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
       setError("Email must be a valid format.");
       return false;
     }
-    if (!email.trim().toLowerCase().endsWith("@nexware-global.com")) {
-      setError("Only nexware-global.com email addresses are allowed.");
+    if (!isAllowedEmailDomain(email.trim())) {
+      setError("Only nexware-global.com and nexgen-global.com email addresses are allowed.");
       return false;
     }
     if (!project.trim()) {
@@ -184,7 +187,7 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-              placeholder="you@nexware-global.com"
+              placeholder="you@nexware-global.com or you@nexgen-global.com"
             />
           </div>
           <div className="space-y-2 text-sm">
