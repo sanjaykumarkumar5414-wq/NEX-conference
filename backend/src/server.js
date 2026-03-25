@@ -23,6 +23,7 @@ console.log("[ENV CHECK] DB_PASSWORD:", process.env.DB_PASSWORD ? "SET" : "NOT L
 import { createApp } from "./app.js";
 import { verifySmtpTransport } from "./services/emailService.js";
 import { createTablesIfNotExists } from "./db/migrations.js";
+import { initializeWhatsAppClient } from "./services/whatsappService.js";
 
 const PORT = Number(process.env.PORT) || 5225;
 
@@ -58,6 +59,13 @@ void (async () => {
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`API server listening on port ${PORT}`);
+  // Initialize WhatsApp client (non-blocking; QR logged to console on first login)
+  try {
+    initializeWhatsAppClient();
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("[WhatsApp] Initialization failed:", err?.message ?? err);
+  }
 }).on("error", (err) => {
   if (err.code === "EADDRINUSE") {
     // eslint-disable-next-line no-console

@@ -17,6 +17,13 @@ import {
   sendBookingRequestNotificationToHr,
   sendBookingCancelledNotificationToHr
 } from "../services/emailService.js";
+import {
+  sendBookingApprovedWhatsApp,
+  sendBookingRejectedWhatsApp,
+  sendBookingRescheduledWhatsApp,
+  sendNewBookingRequestToHrWhatsApp
+} from "../services/whatsappService.js";
+import { getEmployeePhoneByEmail } from "../stores/employeeStore.js";
 
 export const bookingRouter = Router();
 
@@ -158,6 +165,20 @@ bookingRouter.post("/", authenticateJwt, async (req, res, next) => {
           console.error(
             "[Bookings] Failed to send HR request email:",
             emailError?.message ?? emailError
+          );
+        }
+        try {
+          await sendNewBookingRequestToHrWhatsApp({
+            employeeName: booking.requesterName,
+            title: booking.title,
+            date: dateStr,
+            time: slotTime
+          });
+        } catch (waError) {
+          // eslint-disable-next-line no-console
+          console.error(
+            "[Bookings] Failed to send HR request WhatsApp:",
+            waError?.message ?? waError
           );
         }
       })();
@@ -319,6 +340,32 @@ bookingRouter.patch("/:id", authenticateJwt, requireHrAdmin, async (req, res, ne
           }
         })();
       }
+
+      // WhatsApp notification (additional channel; failure does not block response)
+      const phone = toEmail ? await getEmployeePhoneByEmail(toEmail) : null;
+      if (phone) {
+        (async () => {
+          try {
+            if (status === "APPROVED") {
+              await sendBookingApprovedWhatsApp(phone, {
+                title,
+                date: bookingDate,
+                time: timeSlot
+              });
+            } else if (status === "REJECTED") {
+              await sendBookingRejectedWhatsApp(phone, {
+                title,
+                date: bookingDate,
+                time: timeSlot,
+                reason: reason ?? "No reason provided."
+              });
+            }
+          } catch (waError) {
+            // eslint-disable-next-line no-console
+            console.error("[Bookings] Failed to send WhatsApp:", waError?.message ?? waError);
+          }
+        })();
+      }
     }
 
     res.json(updated);
@@ -449,6 +496,26 @@ bookingRouter.post(
           );
           // Do not block; still return success
         }
+      }
+
+      // WhatsApp notification (additional channel)
+      const phone = await getEmployeePhoneByEmail(toEmail);
+      if (phone) {
+        (async () => {
+          try {
+            await sendBookingRescheduledWhatsApp(phone, {
+              title: updated.title || "Conference room",
+              date: newDateStr,
+              time: newTimeStr,
+              oldDate: oldDateStr,
+              oldTime: oldTimeStr,
+              reason: reasonStr
+            });
+          } catch (waError) {
+            // eslint-disable-next-line no-console
+            console.error("[Bookings] Failed to send reschedule WhatsApp:", waError?.message ?? waError);
+          }
+        })();
       }
 
       return res.json({

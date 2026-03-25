@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "clear-whatsapp-session": "node scripts/clear-whatsapp-session.js",
     "lint": "eslint src --ext js --max-warnings 0"
   },
   "dependencies": {
@@ -20,7 +21,9 @@
     "morgan": "^1.10.0",
     "mysql2": "^3.17.0",
     "nodemailer": "^8.0.1",
-    "pdfkit": "^0.17.2"
+    "pdfkit": "^0.17.2",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.6"
   },
   "devDependencies": {
     "eslint": "^8.57.0",

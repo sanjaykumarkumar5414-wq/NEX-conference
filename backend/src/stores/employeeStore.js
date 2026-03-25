@@ -22,6 +22,24 @@ export async function getEmployeeByEmail(email) {
 }
 
 /**
+ * Get employee phone number by email. Returns null if not found or phone is empty.
+ */
+export async function getEmployeePhoneByEmail(email) {
+  const connection = await pool.getConnection();
+  try {
+    const row = await queryOne(
+      connection,
+      "SELECT phone_number FROM employees WHERE email = ?",
+      [email.toLowerCase()]
+    );
+    const phone = row?.phone_number;
+    return phone && String(phone).trim() ? String(phone).trim() : null;
+  } finally {
+    connection.release();
+  }
+}
+
+/**
  * Get employee by primary key id
  */
 export async function getEmployeeById(id) {

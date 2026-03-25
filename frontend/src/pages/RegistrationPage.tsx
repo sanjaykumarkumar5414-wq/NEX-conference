@@ -83,11 +83,11 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
       return false;
     }
     if (!normalizedPhone) {
-      setError("Phone Number is required.");
+      setError("WhatsApp Number is required.");
       return false;
     }
     if (normalizedPhone.length !== 10) {
-      setError("Phone Number must be exactly 10 digits.");
+      setError("WhatsApp Number must be exactly 10 digits.");
       return false;
     }
     if (!managerName.trim()) {
@@ -224,11 +224,11 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
             </div>
           )}
           <div className="space-y-2 text-sm">
-            <label className="block text-slate-200" htmlFor="phone">
-              Phone Number <span className="text-red-400">*</span>
+            <label className="block text-slate-200" htmlFor="whatsapp_number">
+              WhatsApp Number <span className="text-red-400">*</span>
             </label>
             <input
-              id="phone"
+              id="whatsapp_number"
               type="tel"
               value={phoneNumber}
               onChange={(e) => {
@@ -236,7 +236,7 @@ export function RegistrationPage({ onSuccess }: RegistrationPageProps) {
                 setPhoneNumber(digitsOnly);
               }}
               className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-              placeholder="Phone number"
+              placeholder="Enter WhatsApp number"
               inputMode="numeric"
               maxLength={10}
             />
